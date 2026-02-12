@@ -1,4 +1,4 @@
-import type { message } from "@fullstack-template/contracts";
+import type { message } from "@pinpoint/contracts";
 import { MemoryPublisher } from "@orpc/experimental-publisher/memory";
 import type { z } from "zod";
 import { webSocketProcedure } from "../libs/orpc-procedures";

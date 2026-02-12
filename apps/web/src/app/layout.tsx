@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import "@fullstack-template/shad-ui/globals.css";
+import "@pinpoint/shad-ui/globals.css";
 import Providers from "./_components/providers";
 
 const geistSans = localFont({

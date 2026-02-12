@@ -1,5 +1,5 @@
 {
-  "name": "@fullstack-template/web",
+  "name": "@pinpoint/web",
   "version": "0.1.0",
   "type": "module",
   "private": true,
@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "@better-auth/electron": "v1.5.0-beta.13",
-    "@fullstack-template/api": "workspace:*",
-    "@fullstack-template/contracts": "workspace:*",
-    "@fullstack-template/shad-ui": "workspace:*",
+    "@pinpoint/api": "workspace:*",
+    "@pinpoint/contracts": "workspace:*",
+    "@pinpoint/shad-ui": "workspace:*",
     "@orpc/client": "^1.13.2",
     "@orpc/openapi": "^1.13.2",
     "@orpc/server": "^1.13.2",
@@ -31,7 +31,7 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
-    "@fullstack-template/typescript-config": "workspace:*",
+    "@pinpoint/typescript-config": "workspace:*",
     "@types/node": "^22.19.3",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",

@@ -2,7 +2,7 @@
 const nextConfig = {
   images: {
     // TODO<init> config
-    remotePatterns: [{ protocol: "https", hostname: "cdn.fullstack-template.app" }],
+    remotePatterns: [{ protocol: "https", hostname: "cdn.pinpoint.app" }],
   },
 };
 

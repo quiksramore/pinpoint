@@ -14,7 +14,7 @@ export const authServer = betterAuth({
   plugins: [electron(), expo()],
   baseURL: env.API_URL,
   basePath,
-  trustedOrigins: [env.WEBSITE_URL, "fullstacktemplate://", ...(env.ENV === "development" ? ["exp://"] : [])], // TODO
+  trustedOrigins: [env.WEBSITE_URL, "pinpoint://", ...(env.ENV === "development" ? ["exp://"] : [])], // TODO
   socialProviders: {
     google: {
       prompt: "select_account consent",

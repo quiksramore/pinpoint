@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "fullstack-template",
-    "slug": "fullstack-template",
+    "name": "pinpoint",
+    "slug": "pinpoint",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "fullstacktemplate",
+    "scheme": "pinpoint",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {

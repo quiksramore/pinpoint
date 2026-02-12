@@ -1,5 +1,5 @@
 // renderer/orpc.ts
-import { httpContract } from "@fullstack-template/contracts";
+import { httpContract } from "@pinpoint/contracts";
 import { createORPCClient } from "@orpc/client";
 import type { ContractRouterClient } from "@orpc/contract";
 import { OpenAPILink } from "@orpc/openapi-client/fetch";

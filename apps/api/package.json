@@ -1,5 +1,5 @@
 {
-  "name": "@fullstack-template/api",
+  "name": "@pinpoint/api",
   "version": "0.1.0",
   "type": "module",
   "private": true,
@@ -18,7 +18,7 @@
     "@better-auth/electron": "^v1.5.0-beta.13",
     "@better-auth/expo": "^v1.5.0-beta.13",
     "@elysiajs/cors": "^1.4.1",
-    "@fullstack-template/contracts": "workspace:*",
+    "@pinpoint/contracts": "workspace:*",
     "@orpc/experimental-publisher": "^1.13.4",
     "@orpc/openapi": "^1.13.2",
     "@orpc/server": "^1.13.2",

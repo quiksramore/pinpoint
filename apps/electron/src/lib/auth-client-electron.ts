@@ -1,6 +1,6 @@
 import { electronClient } from "@better-auth/electron/client";
 import { storage } from "@better-auth/electron/storage";
-import type { authServer } from "@fullstack-template/api/auth-server";
+import type { authServer } from "@pinpoint/api/auth-server";
 import { inferAdditionalFields } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import { env } from "../env";
@@ -13,9 +13,9 @@ export const authClientElectron = createAuthClient({
   plugins: [
     inferAdditionalFields<typeof authServer>(),
     electronClient({
-      signInURL: "https://fullstack.template/sign-in", // TODO
+      signInURL: "https://pinpoint.com/sign-in", // TODO
       protocol: {
-        scheme: "fullstack.template", // TODO
+        scheme: "pinpoint", // TODO
       },
       storage: storage(),
     }),

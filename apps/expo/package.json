@@ -1,5 +1,5 @@
 {
-  "name": "@fullstack-template/expo",
+  "name": "@pinpoint/expo",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
@@ -12,8 +12,8 @@
   "dependencies": {
     "@better-auth/expo": "v1.5.0-beta.13",
     "@expo/vector-icons": "^15.0.3",
-    "@fullstack-template/api": "workspace:*",
-    "@fullstack-template/contracts": "workspace:*",
+    "@pinpoint/api": "workspace:*",
+    "@pinpoint/contracts": "workspace:*",
     "@orpc/tanstack-query": "^1.13.4",
     "@react-navigation/native": "^7.1.8",
     "@t3-oss/env-core": "^0.13.10",

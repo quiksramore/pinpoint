@@ -1,4 +1,4 @@
-import { httpContract, webSocketContract } from "@fullstack-template/contracts";
+import { httpContract, webSocketContract } from "@pinpoint/contracts";
 import { implement, ORPCError } from "@orpc/server";
 import type { AuthContext } from "./http-context";
 

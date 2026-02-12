@@ -42,8 +42,8 @@
   },
   "protocols": [
     {
-      "name": "FullstackTemplate",
-      "schemes": ["fullstack.template"]
+      "name": "PinPoint",
+      "schemes": ["pinpoint"]
     }
   ]
 }

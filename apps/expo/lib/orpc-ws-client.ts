@@ -1,4 +1,4 @@
-import type { webSocketContract } from "@fullstack-template/contracts";
+import type { webSocketContract } from "@pinpoint/contracts";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/websocket";
 import type { ContractRouterClient } from "@orpc/contract";

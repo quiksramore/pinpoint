@@ -1,5 +1,5 @@
 import { expoClient } from "@better-auth/expo/client";
-import type { authServer } from "@fullstack-template/api/auth-server";
+import type { authServer } from "@pinpoint/api/auth-server";
 import { inferAdditionalFields } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import SecureStore from "expo-secure-store";
@@ -14,8 +14,8 @@ export const authClientExpo = createAuthClient({
     inferAdditionalFields<typeof authServer>(),
 
     expoClient({
-      scheme: "fullstacktemplate", // TODO
-      storagePrefix: "fullstacktemplate", // TODO
+      scheme: "pinpoint", // TODO
+      storagePrefix: "pinpoint", // TODO
       storage: SecureStore,
     }),
   ],

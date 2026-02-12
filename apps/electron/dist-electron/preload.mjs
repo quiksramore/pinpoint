@@ -43493,10 +43493,10 @@ const authClientElectron = createAuthClient({
   plugins: [
     inferAdditionalFields(),
     electronClient({
-      signInURL: "https://fullstack.template/sign-in",
+      signInURL: "https://pinpoint.com/sign-in",
       // TODO
       protocol: {
-        scheme: "fullstack.template"
+        scheme: "pinpoint"
         // TODO
       },
       storage: storage()

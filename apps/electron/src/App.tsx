@@ -1,5 +1,5 @@
-import { Button } from "@fullstack-template/shad-ui/components/button";
-import { Input } from "@fullstack-template/shad-ui/components/input";
+import { Button } from "@pinpoint/shad-ui/components/button";
+import { Input } from "@pinpoint/shad-ui/components/input";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { Minus, Plus, RotateCcw, Send } from "lucide-react";
