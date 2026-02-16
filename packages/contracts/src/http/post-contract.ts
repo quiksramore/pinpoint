@@ -68,3 +68,232 @@ export const postSchema = z.object({
     .array(commentsSchema)
     .default([]),
 });
+
+export const postContract = {
+  createPost: oc
+    .route({
+      method: "POST",
+      description: "Create a new post",
+    })
+    .input(
+      postSchema
+        .pick({
+          title: true,
+          caption: true,
+          frameType: true,
+        })
+        .extend({
+          images: z.array(uploadPhotoInput.omit({ id: true })),
+          community: communitySchema.shape._id.optional(),
+        })
+    )
+    .output(
+      z.object({
+        _id: z.uuidv7(),
+      })
+    )
+    .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      BAD_REQUEST: {},
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
+  deletePost: oc
+    .route({
+      method: "DELETE",
+    })
+    .input(postSchema.shape._id)
+    .output(
+      z.object({
+        success: z.boolean(),
+        error: z.string().optional(),
+      })
+    )
+    .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      UNAUTHORIZED: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
+  editPost: oc
+    .route({
+      method: "PUT",
+    })
+    .input(
+      z.object({
+        _id: postSchema.shape._id,
+        title: postSchema.shape.title.optional(),
+        caption: postSchema.shape.caption.optional(),
+        customFrameEnabled: postSchema.shape.customFrameEnabled.optional(),
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+      })
+    )
+    .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      UNAUTHORIZED: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
+  getPost: oc
+    .route({
+      method: "GET",
+    })
+    .input(postSchema.shape._id)
+    .output(postSchema)
+    .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
+  getPosts: oc
+    .route({
+      method: "GET",
+    })
+    .input(postSchema.shape.authorId)
+    .output(z.array(postSchema))
+    .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
+  createNewComment: oc
+    .route({
+      method: "POST",
+    })
+    .input(
+      z.object({
+        postId: postSchema.shape._id,
+        comment: singleCommentSchema,
+      })
+    )
+    .output(z.object({ success: z.boolean() }))
+    .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
+  replyToComment: oc
+    .route({
+      method: "PUT",
+    })
+    .input(
+      z.object({
+        postId: postSchema.shape._id,
+        commentIndex: z.coerce.number().min(0),
+        reply: z.string().min(1, "Reply must be at least 1 character."),
+      })
+    )
+    .output(z.object({ success: z.boolean() }))
+    .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      BAD_REQUEST: {},
+    }),
+
+  deleteComment: oc
+    .route({
+      method: "DELETE",
+    })
+    .input(
+      z.object({
+        postId: postSchema.shape._id,
+        commentIndex: z.coerce.number().int().min(0),
+      })
+    )
+    .output(z.object({ success: z.boolean() }))
+    .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      UNAUTHORIZED: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+};
