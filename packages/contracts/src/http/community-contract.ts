@@ -106,6 +106,7 @@ export const communityContract = {
     .output(
       z.object({
         success: z.boolean(),
+        error: z.string().optional(),
       })
     )
     .errors({
@@ -158,6 +159,89 @@ export const communityContract = {
           message: z.string(),
         }),
       },
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
+  followCommunity: oc
+    .route({
+      method: "PUT"
+    })
+    .input(
+      z.object({
+        communityId: communitySchema.shape._id,
+        followerId: userSchema.shape._id,
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+        error: z.string().optional(),
+      })
+    )
+    .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      UNAUTHORIZED: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
+  unfollowCommunity: oc
+    .route({
+      method: "DELETE"
+    })
+    .input(
+      z.object({
+        communityId: communitySchema.shape._id,
+        followerId: userSchema.shape._id,
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+        error: z.string().optional(),
+      })
+    )
+    .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      UNAUTHORIZED: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
     }),
 
   addMember: oc
@@ -188,6 +272,11 @@ export const communityContract = {
         }),
       },
       UNAUTHORIZED: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      FORBIDDEN: {
         data: z.object({
           message: z.string(),
         }),
@@ -226,7 +315,87 @@ export const communityContract = {
           message: z.string(),
         }),
       },
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
     }),
+
+  banUser: oc
+    .route({
+      method: "PUT",
+    })
+    .input(z.object({
+      communityId: communitySchema.shape._id,
+      userId: userSchema.shape._id,
+    }))
+  .output(z.object({
+    success: z.boolean(),
+    error: z.string().optional(),
+    })
+  )
+  .errors({
+    NOT_FOUND: {
+      data: z.object({
+        message: z.string()
+      }),
+    },
+    INTERNAL_SERVER_ERROR: {
+      data: z.object({
+        message: z.string(),
+      }),
+    },
+    UNAUTHORIZED: {
+      data: z.object({
+        message: z.string(),
+      }),
+    },
+    FORBIDDEN: {
+      data: z.object({
+        message: z.string(),
+      }),
+    },
+  }),
+
+  unBanUser: oc
+    .route({
+      method: "PUT",
+    })
+    .input(z.object({
+      communityId: communitySchema.shape._id,
+      userId: userSchema.shape._id,
+    }))
+    .output(
+      z.object({
+        success: z.boolean(),
+        error: z.string().optional(),
+      })
+    )
+    .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string()
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      UNAUTHORIZED: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
+
 
   // sendInvite community asking user        input(community id, invitee id)
   // acceptInvite user approving community   input(community id)
@@ -240,13 +409,14 @@ export const communityContract = {
     })
     .input(
       z.object({
-        _id: communitySchema.shape._id,
-        invitee: userSchema.shape._id,
+        communityId: communitySchema.shape._id,
+        inviteeId: userSchema.shape._id,
       })
     )
     .output(
       z.object({
         success: z.boolean(),
+        error: z.string().optional(),
       })
     )
     .errors({
@@ -279,12 +449,13 @@ export const communityContract = {
     })
     .input(
       z.object({
-        _id: communitySchema.shape._id,
+        communityId: communitySchema.shape._id,
       })
     )
     .output(
       z.object({
         success: z.boolean(),
+        error: z.string().optional(),
       })
     )
     .errors({
@@ -316,12 +487,13 @@ export const communityContract = {
     })
     .input(
       z.object({
-        _id: communitySchema.shape._id,
+        communityId: communitySchema.shape._id,
       })
     )
     .output(
       z.object({
         success: z.boolean(),
+        error: z.string().optional(),
       })
     )
     .errors({
@@ -353,13 +525,14 @@ export const communityContract = {
     })
     .input(
       z.object({
-        _id: communitySchema.shape._id,
+        communityId: communitySchema.shape._id,
         requester: userSchema.shape._id,
       })
     )
     .output(
       z.object({
         success: z.boolean(),
+        error: z.string().optional(),
       })
     )
     .errors({
