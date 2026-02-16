@@ -12,9 +12,9 @@
     "lint": "biome check ."
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.15",
+    "@biomejs/biome": "2.4.0",
     "turbo": "^2.8.7",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.0-beta",
     "ultracite": "^6.5.1"
   },
   "engines": {
