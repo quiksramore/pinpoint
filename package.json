@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.0",
-    "turbo": "^2.8.7",
+    "turbo": "^2.8.8",
     "typescript": "^6.0.0-beta",
     "ultracite": "^6.5.1"
   },
