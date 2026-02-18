@@ -93,12 +93,16 @@ export const postContract = {
       })
     )
     .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
         }),
       },
-      BAD_REQUEST: {},
       INTERNAL_SERVER_ERROR: {
         data: z.object({
           message: z.string(),
@@ -118,22 +122,17 @@ export const postContract = {
       })
     )
     .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
         }),
       },
       INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      FORBIDDEN: {
         data: z.object({
           message: z.string(),
         }),
@@ -158,22 +157,27 @@ export const postContract = {
       })
     )
     .errors({
-      NOT_FOUND: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
       UNAUTHORIZED: {
         data: z.object({
           message: z.string(),
         }),
       },
       FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      UNPROCESSABLE_CONTENT: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
         data: z.object({
           message: z.string(),
         }),
@@ -265,7 +269,6 @@ export const postContract = {
           message: z.string(),
         }),
       },
-      BAD_REQUEST: {},
     }),
 
   deleteComment: oc
@@ -286,11 +289,6 @@ export const postContract = {
         }),
       },
       INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
         data: z.object({
           message: z.string(),
         }),

@@ -76,22 +76,12 @@ export const communityContract = {
       })
     )
     .errors({
-      NOT_FOUND: {
+      UNPROCESSABLE_CONTENT: {
         data: z.object({
           message: z.string(),
         }),
       },
       INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      FORBIDDEN: {
         data: z.object({
           message: z.string(),
         }),
@@ -102,7 +92,7 @@ export const communityContract = {
     .route({
       method: "PUT",
     })
-    .input(communitySchema.pick({ name: true, description: true, private: true }))
+    .input(communitySchema.pick({ _id: true, name: true, description: true, private: true }))
     .output(
       z.object({
         success: z.boolean(),
@@ -110,22 +100,22 @@ export const communityContract = {
       })
     )
     .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
         }),
       },
+      UNPROCESSABLE_CONTENT: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      FORBIDDEN: {
         data: z.object({
           message: z.string(),
         }),
@@ -144,22 +134,22 @@ export const communityContract = {
       })
     )
     .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
         }),
       },
+      UNPROCESSABLE_CONTENT: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      FORBIDDEN: {
         data: z.object({
           message: z.string(),
         }),
@@ -168,7 +158,7 @@ export const communityContract = {
 
   followCommunity: oc
     .route({
-      method: "PUT"
+      method: "PUT",
     })
     .input(
       z.object({
@@ -183,22 +173,17 @@ export const communityContract = {
       })
     )
     .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
         }),
       },
       INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      FORBIDDEN: {
         data: z.object({
           message: z.string(),
         }),
@@ -207,7 +192,7 @@ export const communityContract = {
 
   unfollowCommunity: oc
     .route({
-      method: "DELETE"
+      method: "DELETE",
     })
     .input(
       z.object({
@@ -222,22 +207,17 @@ export const communityContract = {
       })
     )
     .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
         }),
       },
       INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      FORBIDDEN: {
         data: z.object({
           message: z.string(),
         }),
@@ -261,22 +241,17 @@ export const communityContract = {
       })
     )
     .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
         }),
       },
       INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      FORBIDDEN: {
         data: z.object({
           message: z.string(),
         }),
@@ -300,22 +275,17 @@ export const communityContract = {
       })
     )
     .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       NOT_FOUND: {
         data: z.object({
-          message: z.string()
+          message: z.string(),
         }),
       },
       INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      FORBIDDEN: {
         data: z.object({
           message: z.string(),
         }),
@@ -326,46 +296,12 @@ export const communityContract = {
     .route({
       method: "PUT",
     })
-    .input(z.object({
-      communityId: communitySchema.shape._id,
-      userId: userSchema.shape._id,
-    }))
-  .output(z.object({
-    success: z.boolean(),
-    error: z.string().optional(),
-    })
-  )
-  .errors({
-    NOT_FOUND: {
-      data: z.object({
-        message: z.string()
-      }),
-    },
-    INTERNAL_SERVER_ERROR: {
-      data: z.object({
-        message: z.string(),
-      }),
-    },
-    UNAUTHORIZED: {
-      data: z.object({
-        message: z.string(),
-      }),
-    },
-    FORBIDDEN: {
-      data: z.object({
-        message: z.string(),
-      }),
-    },
-  }),
-
-  unBanUser: oc
-    .route({
-      method: "PUT",
-    })
-    .input(z.object({
-      communityId: communitySchema.shape._id,
-      userId: userSchema.shape._id,
-    }))
+    .input(
+      z.object({
+        communityId: communitySchema.shape._id,
+        userId: userSchema.shape._id,
+      })
+    )
     .output(
       z.object({
         success: z.boolean(),
@@ -373,9 +309,14 @@ export const communityContract = {
       })
     )
     .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       NOT_FOUND: {
         data: z.object({
-          message: z.string()
+          message: z.string(),
         }),
       },
       INTERNAL_SERVER_ERROR: {
@@ -383,25 +324,41 @@ export const communityContract = {
           message: z.string(),
         }),
       },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
+    }),
+
+  unbanUser: oc
+    .route({
+      method: "PUT",
+    })
+    .input(
+      z.object({
+        communityId: communitySchema.shape._id,
+        userId: userSchema.shape._id,
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+        error: z.string().optional(),
+      })
+    )
+    .errors({
       FORBIDDEN: {
         data: z.object({
           message: z.string(),
         }),
       },
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
     }),
-
-
-
-  // sendInvite community asking user        input(community id, invitee id)
-  // acceptInvite user approving community   input(community id)
-
-  // sendRequest user asking community       input(community id)
-  // acceptRequest community approving user  input(community id, invitee id)
 
   sendInvite: oc
     .route({
@@ -420,22 +377,17 @@ export const communityContract = {
       })
     )
     .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
         }),
       },
       INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      FORBIDDEN: {
         data: z.object({
           message: z.string(),
         }),
@@ -459,22 +411,22 @@ export const communityContract = {
       })
     )
     .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
         }),
       },
+      UNPROCESSABLE_CONTENT: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      FORBIDDEN: {
         data: z.object({
           message: z.string(),
         }),
@@ -536,22 +488,17 @@ export const communityContract = {
       })
     )
     .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
         }),
       },
       INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      FORBIDDEN: {
         data: z.object({
           message: z.string(),
         }),
