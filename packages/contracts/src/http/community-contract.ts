@@ -1,5 +1,6 @@
 import { oc } from "@orpc/contract";
 import { z } from "zod";
+import { communityIdType } from "../id-types";
 import { postSchema } from "./post-contract";
 import { userSchema } from "./user-contract";
 
@@ -35,7 +36,7 @@ export const requestInvitationSchema = z.object({
 });
 
 export const communitySchema = z.object({
-  _id: z.uuidv7(),
+  _id: communityIdType,
   private: z.boolean(),
   name: z.string().min(1, "Name must be at least 1 character.").max(NAME_MAX_LENGTH, `Name must be ${NAME_MAX_LENGTH} characters or less.`),
   description: z

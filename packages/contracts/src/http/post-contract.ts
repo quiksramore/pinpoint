@@ -1,6 +1,6 @@
 import { oc } from "@orpc/contract";
 import { z } from "zod";
-import { communitySchema } from "./community-contract";
+import { communityIdType, postIdType } from "../id-types";
 import { userSchema } from "./user-contract";
 
 export const singleCommentSchema = z.object({
@@ -32,7 +32,7 @@ const TITLE_MAX_LENGTH = 30;
 const CAPTION_MAX_LENGTH = 500;
 
 export const postSchema = z.object({
-  _id: z.uuidv7(),
+  _id: postIdType,
   // biome-ignore format: readability
   authorId: userSchema.shape._id,
   // biome-ignore format: readability
@@ -84,7 +84,7 @@ export const postContract = {
         })
         .extend({
           images: z.array(uploadPhotoInput.omit({ id: true })),
-          community: communitySchema.shape._id.optional(),
+          community: communityIdType.optional(),
         })
     )
     .output(
