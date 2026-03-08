@@ -41,7 +41,9 @@
         "useBlockStatements": "off",
         "noMagicNumbers": "warn",
         "noUselessElse": "warn",
-        "noNegationElse": "off"
+        "noNegationElse": "off",
+        "useConsistentArrowReturn": "warn",
+        "useImportType": "warn"
       },
       "suspicious": {
         "useAwait": "warn",
@@ -58,8 +60,10 @@
         },
         "noForEach": "off"
       },
+      "performance": {
+        "noBarrelFile": "warn"
+      },
       "nursery": {
-        "useConsistentArrowReturn": "warn",
         "useSortedClasses": "warn"
       }
     }
