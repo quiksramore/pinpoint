@@ -18,7 +18,7 @@ const FormFieldContext = React.createContext<FormFieldContextValue>({} as FormFi
 const FormField = <TFieldValues extends FieldValues = FieldValues, TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>>({
   ...props
 }: ControllerProps<TFieldValues, TName>) => (
-  <FormFieldContext.Provider value={{ name: props.name }}>
+  <FormFieldContext.Provider value={{ username: props.name }}>
     <Controller {...props} />
   </FormFieldContext.Provider>
 );
@@ -27,7 +27,7 @@ const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext);
   const itemContext = React.useContext(FormItemContext);
   const { getFieldState } = useFormContext();
-  const formState = useFormState({ name: fieldContext.name });
+  const formState = useFormState({ username: fieldContext.name });
   const fieldState = getFieldState(fieldContext.name, formState);
 
   if (!fieldContext) {
