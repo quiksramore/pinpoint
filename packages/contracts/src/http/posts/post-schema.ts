@@ -36,10 +36,10 @@ export const postSchema = z.object({
     .max(CAPTION_MAX_LENGTH, `Caption must be ${CAPTION_MAX_LENGTH} characters or less.`),
   // biome-ignore format: readability
   images: z
-    .array(z.url()) // R2 image URLs
+    .array(z.object({ url: z.url(), location: pointSchema })) // R2 image URLs + location
     .min(1, "At least one image URL is required."),
   // biome-ignore format: readability
-  location: pointSchema,
+  location: pointSchema, // voronoi centre
   metrics: z.object({
     upvotes: z.number().nonnegative().int().default(0),
     downvotes: z.number().nonnegative().int().default(0),

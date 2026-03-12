@@ -1,5 +1,6 @@
 import { oc } from "@orpc/contract";
 import { z } from "zod";
+import { profileSchema } from "../profile/profile-schema";
 import { postSchema, uploadPhotoInput } from "./post-schema";
 
 export const postContract = {
@@ -25,6 +26,11 @@ export const postContract = {
     )
     .errors({
       FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      UNPROCESSABLE_CONTENT: {
         data: z.object({
           message: z.string(),
         }),
@@ -89,6 +95,39 @@ export const postContract = {
           message: z.string(),
         }),
       },
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+  getPosts: oc
+    .route({
+      method: "GET",
+      description: "Get a user's posts",
+    })
+    .input(profileSchema.shape._id)
+    .output(z.array(postSchema))
+    .errors({
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+  getPostById: oc
+    .route({
+      method: "GET",
+      description: "Get a post by ID",
+    })
+    .input(postSchema.shape._id)
+    .output(postSchema)
+    .errors({
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
