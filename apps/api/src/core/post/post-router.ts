@@ -19,31 +19,30 @@ function findStrongestPoint(points: z.infer<typeof pointSchema>[]): number {
   let maxIndex = 0;
   let bestAverage = Number.POSITIVE_INFINITY;
 
-  points.forEach(({ type, coordinates: [long1, lat1] }, index) => {
+  points.forEach(({ coordinates: [long1, lat1] }, index) => {
     let pointsContained = 0;
-    let totalPointDistances = 0;
+    let totalDistance = 0;
 
-    points.forEach(({ type, coordinates: [long2, lat2] }, index2) => {
+    points.forEach(({ coordinates: [long2, lat2] }, index2) => {
       if (index === index2) return;
-      if (distanceMeters(long1, lat1, long2, lat2) <= MAX_CLUSTER_DISTANCE_METERS) {
+
+      const dist = distanceMeters(long1, lat1, long2, lat2);
+
+      if (dist <= MAX_CLUSTER_DISTANCE_METERS) {
         pointsContained++;
-        totalPointDistances += distanceMeters(long1, lat1, long2, lat2);
+        totalDistance += dist;
       }
     });
 
-    if (pointsContained > maxContained) {
-      maxContained = pointsContained;
-      maxIndex = index;
-    }
+    const averageDistance = pointsContained === 0 ? Number.POSITIVE_INFINITY : totalDistance / pointsContained;
 
-    const averageDistance = totalPointDistances / pointsContained;
-    if (averageDistance < bestAverage) {
+    if (pointsContained > maxContained || (pointsContained === maxContained && averageDistance < bestAverage)) {
+      maxContained = pointsContained;
       bestAverage = averageDistance;
-    }
-    if (pointsContained === maxContained && averageDistance < bestAverage) {
       maxIndex = index;
     }
   });
+
   return maxIndex;
 }
 
