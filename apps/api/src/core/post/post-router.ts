@@ -2,6 +2,7 @@ import { pointSchema } from "@pinpoint/contracts";
 import type { z } from "zod";
 import { protectedProcedure } from "../../libs/orpc-procedures";
 
+const MAX_CLUSTER_DISTANCE_METERS = 250;
 export const postRouter = {
   createPost: protectedProcedure.post.createPost.handler(({ input, context }) => {
     // TODO
@@ -16,12 +17,18 @@ function calculateMidpointOfStrongestCluster(points: z.infer<typeof pointSchema>
 function findStrongestPoint(points: z.infer<typeof pointSchema>[]): number {
   let maxContained = 0;
   let maxIndex = 0;
+  let bestAverage = Number.POSITIVE_INFINITY;
+
   points.forEach(({ type, coordinates: [long1, lat1] }, index) => {
     let pointsContained = 0;
+    let totalPointDistances = 0;
 
     points.forEach(({ type, coordinates: [long2, lat2] }, index2) => {
       if (index === index2) return;
-      if (distanceMeters(long1, lat1, long2, lat2) <= 250) pointsContained++;
+      if (distanceMeters(long1, lat1, long2, lat2) <= MAX_CLUSTER_DISTANCE_METERS) {
+        pointsContained++;
+        totalPointDistances += distanceMeters(long1, lat1, long2, lat2);
+      }
     });
 
     if (pointsContained > maxContained) {
@@ -29,7 +36,12 @@ function findStrongestPoint(points: z.infer<typeof pointSchema>[]): number {
       maxIndex = index;
     }
 
-    if (pointsContained === maxContained) {
+    const averageDistance = totalPointDistances / pointsContained;
+    if (averageDistance < bestAverage) {
+      bestAverage = averageDistance;
+    }
+    if (pointsContained === maxContained && averageDistance < bestAverage) {
+      maxIndex = index;
     }
   });
   return maxIndex;
