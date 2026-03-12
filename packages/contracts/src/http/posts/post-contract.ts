@@ -1,0 +1,103 @@
+import { oc } from "@orpc/contract";
+import { z } from "zod";
+import { postSchema, uploadPhotoInput } from "./post-schema";
+
+export const postContract = {
+  createPost: oc
+    .route({
+      method: "POST",
+      description: "Create a new post",
+    })
+    .input(
+      postSchema
+        .pick({
+          title: true,
+          caption: true,
+        })
+        .extend({
+          images: z.array(uploadPhotoInput),
+        })
+    )
+    .output(
+      z.object({
+        _id: z.uuidv7(),
+      })
+    )
+    .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
+  deletePost: oc
+    .route({
+      method: "DELETE",
+      description: "Delete a post",
+    })
+    .input(postSchema.shape._id)
+    .output(
+      z.object({
+        success: z.boolean(),
+        error: z.string().optional(),
+      })
+    )
+    .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
+  editPost: oc
+    .route({
+      method: "PUT",
+      description: "Edit a post",
+    })
+    .input(
+      z.object({
+        _id: postSchema.shape._id,
+        title: postSchema.shape.title.optional(),
+        caption: postSchema.shape.caption.optional(),
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+      })
+    )
+    .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+};
