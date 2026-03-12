@@ -1,4 +1,4 @@
 export * from "./http/http-contract";
-export * from "./http/post-contract";
-export * from "./id-types";
+export * from "./http/posts/post-contract";
+export * from "./http/posts/post-schema";
 export * from "./ws/ws-contract";
