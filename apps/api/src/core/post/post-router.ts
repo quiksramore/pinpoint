@@ -10,7 +10,20 @@ export const postRouter = {
 };
 
 function calculateMidpointOfStrongestCluster(points: z.infer<typeof pointSchema>[]): z.infer<typeof pointSchema> {
-  return pointSchema.parse({ type: "Point", coordinates: [0, 0] });
+  const strongestIndex = findStrongestPoint(points);
+  const innerCluster = getInnerCluster(points, strongestIndex);
+
+  return calculateCentroid(innerCluster);
+}
+
+function getInnerCluster(points: z.infer<typeof pointSchema>[], strongestIndex: number): z.infer<typeof pointSchema>[] {
+  const [centerLong, centerLat] = points[strongestIndex]?.coordinates || [0, 0];
+
+  // Filter points to include only those within MAX_CLUSTER_DISTANCE_METERS of the strongest point
+  return points.filter((point) => {
+    const [long, lat] = point.coordinates;
+    return distanceMeters(centerLong, centerLat, long, lat) <= MAX_CLUSTER_DISTANCE_METERS;
+  });
 }
 
 // Returns the index of the strongest point, referring to points[] array
@@ -19,6 +32,7 @@ function findStrongestPoint(points: z.infer<typeof pointSchema>[]): number {
   let maxIndex = 0;
   let bestAverage = Number.POSITIVE_INFINITY;
 
+  // For each point, count how many other points are within the MAX_CLUSTER_DISTANCE_METERS and calculate the average distance to those points
   points.forEach(({ coordinates: [long1, lat1] }, index) => {
     let pointsContained = 0;
     let totalDistance = 0;
@@ -35,7 +49,7 @@ function findStrongestPoint(points: z.infer<typeof pointSchema>[]): number {
     });
 
     const averageDistance = pointsContained === 0 ? Number.POSITIVE_INFINITY : totalDistance / pointsContained;
-
+    // Update the strongest point if this point has more contained points, or if it has the same number of contained points but a smaller average distance
     if (pointsContained > maxContained || (pointsContained === maxContained && averageDistance < bestAverage)) {
       maxContained = pointsContained;
       bestAverage = averageDistance;
