@@ -35,6 +35,7 @@ function getAverageDistance(points: z.infer<typeof pointSchema>[], center: z.inf
   return total / points.length;
 }
 
+// Strength is a value between 0 and 1 indicating how tightly clustered the points are around the center. 0 means all points are at the center, 1 means points are spread out to the edge of MAX_CLUSTER_DISTANCE_METERS.
 function getStrength(innerCluster: z.infer<typeof pointSchema>[], center: z.infer<typeof pointSchema>): number {
   const avgDist = getAverageDistance(innerCluster, center);
 
