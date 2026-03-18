@@ -60,6 +60,9 @@ function findStrongestPoint(points: z.infer<typeof pointSchema>[]): number {
   let maxIndex = 0;
   let bestAverage = Number.POSITIVE_INFINITY;
 
+  // Cache pairwise distances to reuse in getInnerCluster and avoid redundant calculations
+  const distanceMatrix: number[][] = points.map(() => []);
+
   // For each point, count how many other points are within the MAX_CLUSTER_DISTANCE_METERS and calculate the average distance to those points
   points.forEach(({ coordinates: [long1, lat1] }, index) => {
     let pointsContained = 0;
@@ -68,7 +71,9 @@ function findStrongestPoint(points: z.infer<typeof pointSchema>[]): number {
     points.forEach(({ coordinates: [long2, lat2] }, index2) => {
       if (index === index2) return;
 
-      const dist = distanceMeters(long1, lat1, long2, lat2);
+      // Only compute each pair once
+      const dist = distanceMatrix[index2]?.[index] ?? distanceMeters(long1, lat1, long2, lat2);
+      distanceMatrix[index][index2] = dist;
 
       if (dist <= MAX_CLUSTER_DISTANCE_METERS) {
         pointsContained++;
@@ -110,7 +115,9 @@ function distanceMeters(long1: number, lat1: number, long2: number, lat2: number
 }
 
 function calculateCentroid(points: z.infer<typeof pointSchema>[]): z.infer<typeof pointSchema> {
-  const centroidLat = points.reduce((acc, point) => acc + point.coordinates[1], 0) / points.length;
-  const centroidLng = points.reduce((acc, point) => acc + point.coordinates[0], 0) / points.length;
+  const [sumLng, sumLat] = points.reduce(([lng, lat], p) => [lng + p.coordinates[0], lat + p.coordinates[1]], [0, 0]);
+  const centroidLng = sumLng / points.length;
+  const centroidLat = sumLat / points.length;
+
   return pointSchema.parse({ type: "Point", coordinates: [centroidLng, centroidLat] });
 }
