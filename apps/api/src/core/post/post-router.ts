@@ -39,10 +39,7 @@ function getStrength(innerCluster: z.infer<typeof pointSchema>[], center: z.infe
   const avgDist = getAverageDistance(innerCluster, center);
 
   // Normalize: 0 (tight) → 1 (spread out to edge of 250m)
-  const normalized = avgDist / MAX_CLUSTER_DISTANCE_METERS;
-
-  // Invert: tight = high strength
-  let strength = 1 - normalized;
+  let strength = avgDist / MAX_CLUSTER_DISTANCE_METERS;
 
   // Clamp to [0,1]
   strength = Math.max(0, Math.min(1, strength));
