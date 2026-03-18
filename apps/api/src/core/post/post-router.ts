@@ -3,27 +3,57 @@ import type { z } from "zod";
 import { protectedProcedure } from "../../libs/orpc-procedures";
 
 const MAX_CLUSTER_DISTANCE_METERS = 250;
+const ADDITIONAL_OUTER_RADIUS_METERS = 750;
 export const postRouter = {
   createPost: protectedProcedure.post.createPost.handler(({ input, context }) => {
     // TODO
   }),
 };
 
-function calculateMidpointOfStrongestCluster(points: z.infer<typeof pointSchema>[]): z.infer<typeof pointSchema> {
+function getStrongestCluster(points: z.infer<typeof pointSchema>[]) {
   const strongestIndex = findStrongestPoint(points);
   const innerCluster = getInnerCluster(points, strongestIndex);
 
-  return calculateCentroid(innerCluster);
+  const center = calculateCentroid(innerCluster);
+
+  const strength = getStrength(innerCluster, center);
+
+  const outerRadius = MAX_CLUSTER_DISTANCE_METERS + strength * ADDITIONAL_OUTER_RADIUS_METERS;
+
+  const finalCluster = filterFinalCluster(points, center, outerRadius);
+
+  return { center, finalCluster };
 }
 
-function getInnerCluster(points: z.infer<typeof pointSchema>[], strongestIndex: number): z.infer<typeof pointSchema>[] {
-  const [centerLong, centerLat] = points[strongestIndex]?.coordinates || [0, 0];
+// HELPER FUNCTIONS -----------------------------------------------
 
-  // Filter points to include only those within MAX_CLUSTER_DISTANCE_METERS of the strongest point
-  return points.filter((point) => {
-    const [long, lat] = point.coordinates;
-    return distanceMeters(centerLong, centerLat, long, lat) <= MAX_CLUSTER_DISTANCE_METERS;
-  });
+function getAverageDistance(points: z.infer<typeof pointSchema>[], center: z.infer<typeof pointSchema>): number {
+  const [cLng, cLat] = center.coordinates;
+
+  const total = points.reduce((sum, p) => sum + distanceMeters(cLng, cLat, p.coordinates[0], p.coordinates[1]), 0);
+
+  return total / points.length;
+}
+
+function getStrength(innerCluster: z.infer<typeof pointSchema>[], center: z.infer<typeof pointSchema>): number {
+  const avgDist = getAverageDistance(innerCluster, center);
+
+  // Normalize: 0 (tight) → 1 (spread out to edge of 250m)
+  const normalized = avgDist / MAX_CLUSTER_DISTANCE_METERS;
+
+  // Invert: tight = high strength
+  let strength = 1 - normalized;
+
+  // Clamp to [0,1]
+  strength = Math.max(0, Math.min(1, strength));
+
+  return strength;
+}
+
+function filterFinalCluster(points: z.infer<typeof pointSchema>[], center: z.infer<typeof pointSchema>, outerRadius: number) {
+  const [cLng, cLat] = center.coordinates;
+
+  return points.filter((p) => distanceMeters(cLng, cLat, p.coordinates[0], p.coordinates[1]) <= outerRadius);
 }
 
 // Returns the index of the strongest point, referring to points[] array
@@ -58,6 +88,16 @@ function findStrongestPoint(points: z.infer<typeof pointSchema>[]): number {
   });
 
   return maxIndex;
+}
+
+function getInnerCluster(points: z.infer<typeof pointSchema>[], strongestIndex: number): z.infer<typeof pointSchema>[] {
+  const [centerLong, centerLat] = points[strongestIndex]?.coordinates || [0, 0];
+
+  // Filter points to include only those within MAX_CLUSTER_DISTANCE_METERS of the strongest point
+  return points.filter((point) => {
+    const [long, lat] = point.coordinates;
+    return distanceMeters(centerLong, centerLat, long, lat) <= MAX_CLUSTER_DISTANCE_METERS;
+  });
 }
 
 // Calculate distance
