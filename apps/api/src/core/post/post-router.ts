@@ -1,12 +1,53 @@
 import { pointSchema } from "@pinpoint/contracts";
+import { ORPCError } from "@orpc/server";
+import { v7 as uuidv7 } from "uuid";
 import type { z } from "zod";
+import { PostService } from "./post-service";
 import { protectedProcedure } from "../../libs/orpc-procedures";
 
 const MAX_CLUSTER_DISTANCE_METERS = 250;
 const ADDITIONAL_OUTER_RADIUS_METERS = 750;
+const METERS_PER_DEGREE_LATITUDE = 111_320;
+const DEGREES_PER_HALF_TURN = 180;
 export const postRouter = {
-  createPost: protectedProcedure.post.createPost.handler(({ input, context }) => {
-    // TODO
+  createPost: protectedProcedure.post.createPost.handler(async ({ input, context }) => {
+    if (input.images.length === 0) {
+      throw new ORPCError("UNPROCESSABLE_CONTENT", {
+        message: "At least one image is required.",
+      });
+    }
+
+    const fallbackPoint = pointSchema.parse({ type: "Point", coordinates: [0, 0] });
+
+    // TODO: replace placeholder URL + location with real upload + extracted geolcoation metadata.
+    const images = input.images.map(({ id }) => ({
+      url: `/uploads/${id}`,
+      location: fallbackPoint,
+    }));
+
+    const imagePoints = images.map((image) => image.location);
+    const { center: location } = getStrongestCluster(imagePoints);
+
+    const createdPost = await PostService.create({
+      _id: uuidv7(),
+      authorId: context.user.id,
+      authorSnapshot: {
+        name: context.user.name,
+        image: context.user.image ?? "",
+      },
+      title: input.title,
+      caption: input.caption,
+      images,
+      location,
+      metrics: {
+        upvotes: 0,
+        downvotes: 0,
+        comments: 0,
+      },
+      createdAt: new Date(),
+    });
+
+    return { _id: createdPost._id };
   }),
 };
 
@@ -73,7 +114,10 @@ function findStrongestPoint(points: z.infer<typeof pointSchema>[]): number {
 
       // Only compute each pair once
       const dist = distanceMatrix[index2]?.[index] ?? distanceMeters(long1, lat1, long2, lat2);
-      distanceMatrix[index][index2] = dist;
+      const currentRow = distanceMatrix[index];
+      if (currentRow) {
+        currentRow[index2] = dist;
+      }
 
       if (dist <= MAX_CLUSTER_DISTANCE_METERS) {
         pointsContained++;
@@ -105,8 +149,9 @@ function getInnerCluster(points: z.infer<typeof pointSchema>[], strongestIndex: 
 
 // Calculate distance
 function distanceMeters(long1: number, lat1: number, long2: number, lat2: number) {
-  const metersPerDegLat = 111_320;
-  const metersPerDegLon = 111_320 * Math.cos((((lat1 + lat2) / 2) * Math.PI) / 180);
+  const metersPerDegLat = METERS_PER_DEGREE_LATITUDE;
+  const averageLatitude = (lat1 + lat2) / 2;
+  const metersPerDegLon = METERS_PER_DEGREE_LATITUDE * Math.cos((averageLatitude * Math.PI) / DEGREES_PER_HALF_TURN);
 
   const dx = (long2 - long1) * metersPerDegLon;
   const dy = (lat2 - lat1) * metersPerDegLat;

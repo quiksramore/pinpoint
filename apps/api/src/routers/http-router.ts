@@ -1,5 +1,5 @@
-import { counterRouter } from "../core/counter-router";
+import { postRouter } from "../core/post/post-router";
 
 export const httpRouter = {
-  counter: counterRouter,
+  post: postRouter,
 };
