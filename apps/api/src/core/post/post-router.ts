@@ -26,7 +26,12 @@ export const postRouter = {
     }));
 
     const imagePoints = images.map((image) => image.location);
-    const { center: location } = getStrongestCluster(imagePoints);
+    const { center: location, finalCluster } = getStrongestCluster(imagePoints);
+    if (finalCluster.length !== images.length) {
+      throw new ORPCError("FORBIDDEN", {
+        message: "The images provided are too geographically spread out. Please provide images that are closer together.",
+      });
+    }
 
     const createdPost = await PostService.create({
       _id: uuidv7(),
@@ -61,7 +66,7 @@ function getStrongestCluster(points: z.infer<typeof pointSchema>[]) {
 
   const outerRadius = MAX_CLUSTER_DISTANCE_METERS + strength * ADDITIONAL_OUTER_RADIUS_METERS;
 
-  const finalCluster = filterFinalCluster(points, center, outerRadius);
+  const finalCluster = filterFinalCluster(points, center, outerRadius); // Returns array of points
 
   return { center, finalCluster };
 }
