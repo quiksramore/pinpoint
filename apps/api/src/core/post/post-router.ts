@@ -57,6 +57,32 @@ export const postRouter = {
 
     return { _id: createdPost._id };
   }),
+  deletePost: protectedProcedure.post.deletePost.handler(async ({ input, context }) => {
+    const post = await PostService.findById(input).select({ _id: 1, authorId: 1 }).lean();
+
+    if (!post) {
+      throw new ORPCError("NOT_FOUND", {
+        message: "Post not found.",
+      });
+    }
+
+    if (post.authorId !== context.user.id) {
+      throw new ORPCError("FORBIDDEN", {
+        message: "You are not allowed to delete this post.",
+      });
+    }
+
+    const deleteResult = await PostService.deleteOne({ _id: input, authorId: context.user.id });
+
+    // Handles rare race conditions (deleted between findById and deleteOne)
+    if (deleteResult.deletedCount !== 1) {
+      throw new ORPCError("NOT_FOUND", {
+        message: "Post not found.",
+      });
+    }
+
+    return { success: true };
+  }),
 };
 
 function getStrongestCluster(points: z.infer<typeof pointSchema>[]) {
