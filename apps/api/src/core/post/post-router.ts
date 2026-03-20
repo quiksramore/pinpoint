@@ -6,8 +6,11 @@ import { getStrongestCluster } from "./location-util";
 import { PostService } from "./post-service";
 
 export const postRouter = {
-  createPost: protectedProcedure.post.createPost.handler(async ({ input, context }) => {
+  createPost: protectedProcedure.post.createPost.handler(async ({ input, context, errors }) => {
     const fallbackPoint = pointSchema.parse({ type: "Point", coordinates: [0, 0] });
+
+    // TODO
+    if (1 === 1) throw new ORPCError("NOT_IMPLEMENTED");
 
     // TODO: replace placeholder URL + location with real upload + extracted geolcoation metadata.
     const images = input.images.map(({ id }) => ({
@@ -17,9 +20,12 @@ export const postRouter = {
 
     const imagePoints = images.map((image) => image.location);
     const { center: location, finalCluster } = getStrongestCluster(imagePoints);
+
     if (finalCluster.length !== images.length) {
-      throw new ORPCError("FORBIDDEN", {
-        message: "The images provided are too geographically spread out. Please provide images that are closer together.",
+      throw errors.UNPROCESSABLE_CONTENT({
+        data: {
+          message: "The images provided are too geographically spread apart. Please provide images that are closer together.",
+        },
       });
     }
 
@@ -44,8 +50,10 @@ export const postRouter = {
 
     const parsedPost = postSchema.safeParse(postPayload);
     if (!parsedPost.success) {
-      throw new ORPCError("UNPROCESSABLE_CONTENT", {
-        message: parsedPost.error.issues[0]?.message ?? "Invalid post payload.",
+      throw errors.UNPROCESSABLE_CONTENT({
+        data: {
+          message: parsedPost.error.issues.map((issue) => issue.message).join(", "),
+        },
       });
     }
 
