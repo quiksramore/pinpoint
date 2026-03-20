@@ -83,6 +83,59 @@ export const postRouter = {
 
     return { success: true };
   }),
+  editPost: protectedProcedure.post.editPost.handler(async ({ input, context }) => {
+    const post = await PostService.findById(input._id).select({ _id: 1, authorId: 1 }).lean();
+
+    if (!post) {
+      throw new ORPCError("NOT_FOUND", {
+        message: "Post not found.",
+      });
+    }
+
+    if (post.authorId !== context.user.id) {
+      throw new ORPCError("FORBIDDEN", {
+        message: "You are not allowed to edit this post.",
+      });
+    }
+
+    if (typeof input.title === "undefined" && typeof input.caption === "undefined") {
+      throw new ORPCError("UNPROCESSABLE_CONTENT", {
+        message: "Provide at least one field to update.",
+      });
+    }
+
+    const updatePayload: { title?: string; caption?: string; editedAt: Date } = {
+      editedAt: new Date(),
+    };
+
+    if (typeof input.title !== "undefined") {
+      updatePayload.title = input.title;
+    }
+
+    if (typeof input.caption !== "undefined") {
+      updatePayload.caption = input.caption;
+    }
+
+    const parsedUpdate = postSchema
+      .pick({ title: true, caption: true, editedAt: true })
+      .partial({ title: true, caption: true })
+      .safeParse(updatePayload);
+
+    if (!parsedUpdate.success) {
+      throw new ORPCError("UNPROCESSABLE_CONTENT", {
+        message: parsedUpdate.error.issues[0]?.message ?? "Invalid update payload.",
+      });
+    }
+    const result = await PostService.updateOne({ _id: input._id, authorId: context.user.id }, { $set: parsedUpdate.data });
+
+    if (result.matchedCount === 0) {
+      throw new ORPCError("NOT_FOUND", {
+        message: "Post not found.",
+      });
+    }
+
+    return { success: true };
+  }),
 };
 
 function getStrongestCluster(points: z.infer<typeof pointSchema>[]) {
