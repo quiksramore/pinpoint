@@ -79,38 +79,38 @@ export const postRouter = {
 
     return { success: true };
   }),
-  editPost: protectedProcedure.post.editPost.handler(async ({ input, context }) => {
+  editPost: protectedProcedure.post.editPost.handler(async ({ input, context, errors }) => {
     const post = await PostService.findById(input._id).select({ _id: 1, authorId: 1 }).lean();
 
     if (!post) {
-      throw new ORPCError("NOT_FOUND", {
-        message: "Post not found.",
+      throw errors.NOT_FOUND({
+        data: {
+          message: "Post not found.",
+        },
       });
     }
 
     if (post.authorId !== context.user.id) {
-      throw new ORPCError("FORBIDDEN", {
-        message: "You are not allowed to edit this post.",
+      throw errors.FORBIDDEN({
+        data: {
+          message: "You are not allowed to edit this post.",
+        },
       });
     }
 
-    if (typeof input.title === "undefined" && typeof input.caption === "undefined") {
-      throw new ORPCError("UNPROCESSABLE_CONTENT", {
-        message: "Provide at least one field to update.",
+    if (!(input.title || input.caption)) {
+      throw errors.UNPROCESSABLE_CONTENT({
+        data: {
+          message: "No fields provided to update.",
+        },
       });
     }
 
-    const updatePayload: { title?: string; caption?: string; editedAt: Date } = {
+    const updatePayload = {
       editedAt: new Date(),
+      ...(input.title && { title: input.title }),
+      ...(input.caption && { caption: input.caption }),
     };
-
-    if (typeof input.title !== "undefined") {
-      updatePayload.title = input.title;
-    }
-
-    if (typeof input.caption !== "undefined") {
-      updatePayload.caption = input.caption;
-    }
 
     const parsedUpdate = postSchema
       .pick({ title: true, caption: true, editedAt: true })
@@ -118,15 +118,19 @@ export const postRouter = {
       .safeParse(updatePayload);
 
     if (!parsedUpdate.success) {
-      throw new ORPCError("UNPROCESSABLE_CONTENT", {
-        message: parsedUpdate.error.issues[0]?.message ?? "Invalid update payload.",
+      throw errors.UNPROCESSABLE_CONTENT({
+        data: {
+          message: parsedUpdate.error.issues[0]?.message ?? "Invalid update payload.",
+        },
       });
     }
     const result = await PostService.updateOne({ _id: input._id, authorId: context.user.id }, { $set: parsedUpdate.data });
 
     if (result.matchedCount === 0) {
-      throw new ORPCError("NOT_FOUND", {
-        message: "Post not found.",
+      throw errors.NOT_FOUND({
+        data: {
+          message: "Post not found.",
+        },
       });
     }
 
