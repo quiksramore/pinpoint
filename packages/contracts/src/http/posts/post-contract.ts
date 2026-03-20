@@ -105,6 +105,11 @@ export const postContract = {
           message: z.string(),
         }),
       },
+      UNPROCESSABLE_CONTENT: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       INTERNAL_SERVER_ERROR: {
         data: z.object({
           message: z.string(),
