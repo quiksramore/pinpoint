@@ -1,4 +1,4 @@
-import { pointSchema } from "@pinpoint/contracts";
+import { pointSchema, postSchema } from "@pinpoint/contracts";
 import { ORPCError } from "@orpc/server";
 import { v7 as uuidv7 } from "uuid";
 import type { z } from "zod";
@@ -27,7 +27,7 @@ export const postRouter = {
       });
     }
 
-    const createdPost = await PostService.create({
+    const postPayload = {
       _id: uuidv7(),
       authorId: context.user.id,
       authorSnapshot: {
@@ -44,7 +44,16 @@ export const postRouter = {
         comments: 0,
       },
       createdAt: new Date(),
-    });
+    };
+
+    const parsedPost = postSchema.safeParse(postPayload);
+    if (!parsedPost.success) {
+      throw new ORPCError("UNPROCESSABLE_CONTENT", {
+        message: parsedPost.error.issues[0]?.message ?? "Invalid post payload.",
+      });
+    }
+
+    const createdPost = await PostService.create(parsedPost.data);
 
     return { _id: createdPost._id };
   }),
