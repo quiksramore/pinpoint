@@ -11,12 +11,6 @@ const METERS_PER_DEGREE_LATITUDE = 111_320;
 const DEGREES_PER_HALF_TURN = 180;
 export const postRouter = {
   createPost: protectedProcedure.post.createPost.handler(async ({ input, context }) => {
-    if (input.images.length === 0) {
-      throw new ORPCError("UNPROCESSABLE_CONTENT", {
-        message: "At least one image is required.",
-      });
-    }
-
     const fallbackPoint = pointSchema.parse({ type: "Point", coordinates: [0, 0] });
 
     // TODO: replace placeholder URL + location with real upload + extracted geolcoation metadata.
