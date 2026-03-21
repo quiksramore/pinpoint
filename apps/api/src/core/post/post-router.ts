@@ -61,18 +61,22 @@ export const postRouter = {
 
     return { _id: createdPost._id };
   }),
-  deletePost: protectedProcedure.post.deletePost.handler(async ({ input, context }) => {
+  deletePost: protectedProcedure.post.deletePost.handler(async ({ input, context, errors }) => {
     const post = await PostService.findById(input).select({ _id: 1, authorId: 1 }).lean();
 
     if (!post) {
-      throw new ORPCError("NOT_FOUND", {
-        message: "Post not found.",
+      throw errors.NOT_FOUND({
+        data: {
+          message: "Post not found.",
+        },
       });
     }
 
     if (post.authorId !== context.user.id) {
-      throw new ORPCError("FORBIDDEN", {
-        message: "You are not allowed to delete this post.",
+      throw errors.FORBIDDEN({
+        data: {
+          message: "You are not allowed to delete this post.",
+        },
       });
     }
 
@@ -80,8 +84,10 @@ export const postRouter = {
 
     // Handles rare race conditions (deleted between findById and deleteOne)
     if (deleteResult.deletedCount !== 1) {
-      throw new ORPCError("NOT_FOUND", {
-        message: "Post not found.",
+      throw errors.NOT_FOUND({
+        data: {
+          message: "Post not found.",
+        },
       });
     }
 
