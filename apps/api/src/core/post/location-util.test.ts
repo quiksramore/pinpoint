@@ -1,7 +1,7 @@
 import { expect, test, describe } from "bun:test";
 import type { pointSchema } from "node_modules/@pinpoint/contracts/src/http/posts/post-schema";
 import type z from "zod";
-import { findStrongestPoint, getInnerCluster } from "./location-util";
+import { findStrongestPoint, getInnerCluster, calculateCentroid, getStrength } from "./location-util";
 
 interface PointCluster {
   cluster: number;
@@ -89,5 +89,16 @@ describe("strongest cluster", () => {
       testPoints[4].points[1],
       testPoints[4].points[2],
     ]);
+  });
+});
+
+describe("strength test", () => {
+  test("cluster 1 vs cluster 2", () => {
+    const cluster1 = getInnerCluster(testPoints[0].points, findStrongestPoint(testPoints[0].points));
+    const center1 = calculateCentroid(cluster1);
+    const cluster2 = getInnerCluster(testPoints[1].points, findStrongestPoint(testPoints[1].points));
+    const center2 = calculateCentroid(cluster2);
+
+    expect(getStrength(cluster1, center1)).toBeGreaterThan(getStrength(cluster2, center2));
   });
 });
