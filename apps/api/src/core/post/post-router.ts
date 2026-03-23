@@ -72,41 +72,39 @@ export const postRouter = {
       return { _id: id };
     }
   ),
-  deletePost: protectedProcedure.post.deletePost.handler(
-    async ({ input, context, errors: { NOT_FOUND, FORBIDDEN, INTERNAL_SERVER_ERROR} }) => {
-      const post = await PostService.findById(input).select({ _id: 1, authorId: 1 }).lean();
+  deletePost: protectedProcedure.post.deletePost.handler(async ({ input, context, errors: { NOT_FOUND, FORBIDDEN, INTERNAL_SERVER_ERROR } }) => {
+    const post = await PostService.findById(input).select({ _id: 1, authorId: 1 }).lean();
 
-      if (!post) {
-        throw NOT_FOUND({
-          data: {
-            message: `Post not found from ${context.user.name} with id ${input}`,
-          },
-        });
-      }
-
-      if (post.authorId !== context.user.id) {
-        throw FORBIDDEN({
-          data: {
-            message: "You are not allowed to delete this post.",
-          },
-        });
-      }
-
-      try{
-        const deleteResult = await PostService.deleteOne({ _id: input });
-        if (deleteResult.deletedCount === 1) return {success: true};
-        return {success: false};
-      } catch (error) {
-        throw INTERNAL_SERVER_ERROR({
-          data: {
-            message: `DB failed to delete post with id ${input}. ${error}`,
-          },
-        });
-      }
+    if (!post) {
+      throw NOT_FOUND({
+        data: {
+          message: `Post not found from ${context.user.name} with id ${input}`,
+        },
+      });
     }
-  ),
+
+    if (post.authorId !== context.user.id) {
+      throw FORBIDDEN({
+        data: {
+          message: "You are not allowed to delete this post.",
+        },
+      });
+    }
+
+    try {
+      const deleteResult = await PostService.deleteOne({ _id: input });
+      if (deleteResult.deletedCount === 1) return { success: true };
+      return { success: false };
+    } catch (error) {
+      throw INTERNAL_SERVER_ERROR({
+        data: {
+          message: `DB failed to delete post with id ${input}. ${error}`,
+        },
+      });
+    }
+  }),
   editPost: protectedProcedure.post.editPost.handler(
-    async ({ input, context, errors: { INTERNAL_SERVER_ERROR, NOT_FOUND, FORBIDDEN, UNPROCESSABLE_CONTENT} }) => {
+    async ({ input, context, errors: { INTERNAL_SERVER_ERROR, NOT_FOUND, FORBIDDEN, UNPROCESSABLE_CONTENT } }) => {
       const post = await PostService.findById(input._id).select({ _id: 1, authorId: 1 }).lean();
 
       if (!post) {
@@ -164,4 +162,57 @@ export const postRouter = {
       }
     }
   ),
+  getPosts: protectedProcedure.post.getPosts.handler(async ({ input, errors: { INTERNAL_SERVER_ERROR } }) => {
+    try {
+      const posts = await PostService.find({ authorId: input }).sort({ createdAt: -1 }).lean();
+      const parsedPosts = postSchema.array().safeParse(posts);
+
+      if (!parsedPosts.success) {
+        throw INTERNAL_SERVER_ERROR({
+          data: {
+            message: `Invalid post data found for authorId ${input}. ${parsedPosts.error.issues.map((issue) => issue.message).join(", ")}`,
+          },
+        });
+      }
+
+      return parsedPosts.data;
+    } catch (error) {
+      throw INTERNAL_SERVER_ERROR({
+        data: {
+          message: `DB failed to fetch posts for authorId ${input}. ${error}`,
+        },
+      });
+    }
+  }),
+  getPostById: protectedProcedure.post.getPostById.handler(async ({ input, errors: { INTERNAL_SERVER_ERROR, NOT_FOUND } }) => {
+    try {
+      const post = await PostService.findById(input).lean();
+
+      if (!post) {
+        throw NOT_FOUND({
+          data: {
+            message: `Post not found with id ${input}`,
+          },
+        });
+      }
+
+      const parsedPost = postSchema.safeParse(post);
+
+      if (!parsedPost.success) {
+        throw INTERNAL_SERVER_ERROR({
+          data: {
+            message: `Invalid post data found for id ${input}. ${parsedPost.error.issues.map((issue) => issue.message).join(", ")}`,
+          },
+        });
+      }
+
+      return parsedPost.data;
+    } catch (error) {
+      throw INTERNAL_SERVER_ERROR({
+        data: {
+          message: `DB failed to fetch post with id ${input}. ${error}`,
+        },
+      });
+    }
+  }),
 };

@@ -121,4 +121,4 @@ function calculateCentroid(points: z.infer<typeof pointSchema>[]): z.infer<typeo
 }
 
 // TODO: exported for unit testing
-export { distanceMeters, findStrongestPoint, getInnerCluster, filterFinalCluster, calculateCentroid, getStrength };
+// export { distanceMeters, findStrongestPoint, getInnerCluster, filterFinalCluster, calculateCentroid, getStrength };

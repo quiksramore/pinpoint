@@ -2,6 +2,7 @@ import { expect, test, describe } from "bun:test";
 import type { pointSchema } from "node_modules/@pinpoint/contracts/src/http/posts/post-schema";
 import type z from "zod";
 import { findStrongestPoint, getInnerCluster, calculateCentroid, getStrength } from "./location-util";
+import { P } from "node_modules/@orpc/server/dist/shared/server.qKsRrdxW.mjs";
 
 interface PointCluster {
   cluster: number;
@@ -48,6 +49,22 @@ const testPoints: PointCluster[] = [
       { type: "Point", coordinates: [37.00202, -122.05834] },
       { type: "Point", coordinates: [37.00193, -122.05852] },
       { type: "Point", coordinates: [37.00075, -122.06052] },
+    ],
+  },
+  {
+    cluster: 6,
+    points: [
+      { type: "Point", coordinates: [37.00197, -122.05839] },
+      { type: "Point", coordinates: [37.00202, -122.05839] },
+      { type: "Point", coordinates: [37.00199, -122.05848] },
+    ],
+  },
+  {
+    cluster: 7,
+    points: [
+      { type: "Point", coordinates: [37.00236, -122.05834] },
+      { type: "Point", coordinates: [37.00196, -122.05927] },
+      { type: "Point", coordinates: [37.00153, -122.05808] },
     ],
   },
 ];
@@ -98,7 +115,19 @@ describe("strength test", () => {
     const center1 = calculateCentroid(cluster1);
     const cluster2 = getInnerCluster(testPoints[1].points, findStrongestPoint(testPoints[1].points));
     const center2 = calculateCentroid(cluster2);
+    console.log("Strength of cluster 1:", getStrength(cluster1, center1));
+    console.log("Strength of cluster 2:", getStrength(cluster2, center2));
 
     expect(getStrength(cluster1, center1)).toBeGreaterThan(getStrength(cluster2, center2));
+  });
+  test("cluster 6 vs cluster 7", () => {
+    const cluster6 = getInnerCluster(testPoints[5].points, findStrongestPoint(testPoints[5].points));
+    const center6 = calculateCentroid(cluster6);
+    const cluster7 = getInnerCluster(testPoints[6].points, findStrongestPoint(testPoints[6].points));
+    const center7 = calculateCentroid(cluster7);
+    console.log("Strength of cluster 6:", getStrength(cluster6, center6));
+    console.log("Strength of cluster 7:", getStrength(cluster7, center7));
+
+    expect(getStrength(cluster7, center7)).toBeGreaterThan(getStrength(cluster6, center6));
   });
 });
