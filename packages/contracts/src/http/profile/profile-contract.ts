@@ -58,5 +58,38 @@ export const profileContract = {
           message: z.string(),
         }),
       },
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+  deleteProfile: oc
+    .route({
+      method: "DELETE",
+      description: "Delete a user's profile",
+    })
+    .input(profileSchema.shape._id)
+    .output(
+      z.object({
+        success: z.boolean(),
+      })
+    )
+    .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
     }),
 };
