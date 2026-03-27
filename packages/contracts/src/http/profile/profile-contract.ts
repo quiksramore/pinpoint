@@ -28,14 +28,18 @@ export const profileContract = {
       description: "Edit a user's profile information",
     })
     .input(
-      // TODO: how to input pin information
-      z.object({
-        _id: profileSchema.shape._id,
-        username: profileSchema.shape.username.optional(),
-        bio: profileSchema.shape.bio.optional(),
-        location: profileSchema.shape.location.optional(),
-        // pins: profileSchema.shape.pins.optional(),
-      })
+      // TODO: how to input pin information (currently using uuid of pins??)
+      z
+        .object({
+          _id: profileSchema.shape._id,
+          username: profileSchema.shape.username.optional(),
+          bio: profileSchema.shape.bio.optional(),
+          location: profileSchema.shape.location.optional(),
+          // pins: profileSchema.shape.pins.optional(),
+        })
+        .extend({
+          pins: z.array(z.uuidv7()).optional(),
+        })
     )
     .output(
       z.object({
