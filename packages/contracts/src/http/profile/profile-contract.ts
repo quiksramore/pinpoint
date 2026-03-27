@@ -3,6 +3,34 @@ import z from "zod";
 import { profileSchema } from "./profile-schema";
 
 export const profileContract = {
+  createProfile: oc
+    .route({
+      method: "POST",
+      description: "Create a new user profile",
+    })
+    .input(
+      z.object({
+        username: profileSchema.shape.username,
+        bio: profileSchema.shape.bio.optional(),
+        location: profileSchema.shape.location.optional(),
+      })
+    )
+    .output(z.object({ _id: z.uuidv7() }))
+    .errors({
+      FORBIDDEN: {
+        data: z.object({}),
+      },
+      UNPROCESSABLE_CONTENT: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
   getProfile: oc
     .route({
       method: "GET",
