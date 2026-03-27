@@ -136,4 +136,25 @@ export const profileRouter = {
       }
     }
   ),
+  getProfileById: publicProcedure.profile.getProfile.handler(async ({ input, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR } }) => {
+    try {
+      const profile = await ProfileService.findById(input).lean();
+
+      if (!profile) {
+        throw NOT_FOUND({
+          data: {
+            message: `Profile not found with id ${input}`,
+          },
+        });
+      }
+
+      return profile;
+    } catch (error) {
+      throw INTERNAL_SERVER_ERROR({
+        data: {
+          message: `DB failed to fetch profile with id ${input}. ${error}`,
+        },
+      });
+    }
+  }),
 };
