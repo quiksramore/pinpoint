@@ -18,7 +18,9 @@ export const profileContract = {
     .output(z.object({ _id: z.uuidv7() }))
     .errors({
       FORBIDDEN: {
-        data: z.object({}),
+        data: z.object({
+          message: z.string(),
+        }),
       },
       UNPROCESSABLE_CONTENT: {
         data: z.object({
