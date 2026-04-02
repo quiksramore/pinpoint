@@ -3,10 +3,10 @@ import type { pointSchema } from "node_modules/@pinpoint/contracts/src/http/post
 import type z from "zod";
 import { calculateCentroid, findStrongestPoint, getInnerCluster, getStrength } from "./location-util";
 
-interface PointCluster {
+type PointCluster = {
   cluster: number;
   points: z.infer<typeof pointSchema>[];
-}
+};
 
 const testPoints: PointCluster[] = [
   {
