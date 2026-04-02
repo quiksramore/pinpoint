@@ -39,7 +39,7 @@ export const postSchema = z.object({
     .array(z.object({ url: z.url(), location: pointSchema })) // R2 image URLs + location
     .min(1, "At least one image URL is required."),
   // biome-ignore format: readability
-  location: pointSchema, // voronoi centre
+  location: pointSchema, // centre
   metrics: z.object({
     upvotes: z.number().nonnegative().int().default(0),
     downvotes: z.number().nonnegative().int().default(0),
