@@ -1,8 +1,7 @@
-import { expect, test, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import type { pointSchema } from "node_modules/@pinpoint/contracts/src/http/posts/post-schema";
 import type z from "zod";
-import { findStrongestPoint, getInnerCluster, calculateCentroid, getStrength } from "./location-util";
-import { P } from "node_modules/@orpc/server/dist/shared/server.qKsRrdxW.mjs";
+import { calculateCentroid, findStrongestPoint, getInnerCluster, getStrength } from "./location-util";
 
 interface PointCluster {
   cluster: number;
@@ -13,58 +12,58 @@ const testPoints: PointCluster[] = [
   {
     cluster: 1,
     points: [
-      { type: "Point", coordinates: [37.00198, -122.05876] },
-      { type: "Point", coordinates: [37.00208, -122.05833] },
-      { type: "Point", coordinates: [37.00195, -122.05845] },
-      { type: "Point", coordinates: [37.00169, -122.05899] },
-      { type: "Point", coordinates: [37.00174, -122.0592] },
+      { type: "Point", coordinates: [37.001_98, -122.058_76] },
+      { type: "Point", coordinates: [37.002_08, -122.058_33] },
+      { type: "Point", coordinates: [37.001_95, -122.058_45] },
+      { type: "Point", coordinates: [37.001_69, -122.058_99] },
+      { type: "Point", coordinates: [37.001_74, -122.0592] },
     ],
   },
   {
     cluster: 2,
     points: [
-      { type: "Point", coordinates: [37.00203, -122.05826] },
-      { type: "Point", coordinates: [37.00202, -122.05837] },
-      { type: "Point", coordinates: [37.0019, -122.05846] },
+      { type: "Point", coordinates: [37.002_03, -122.058_26] },
+      { type: "Point", coordinates: [37.002_02, -122.058_37] },
+      { type: "Point", coordinates: [37.0019, -122.058_46] },
     ],
   },
   {
     cluster: 3,
     points: [
-      { type: "Point", coordinates: [37.00202, -122.05834] },
-      { type: "Point", coordinates: [37.00193, -122.05852] },
+      { type: "Point", coordinates: [37.002_02, -122.058_34] },
+      { type: "Point", coordinates: [37.001_93, -122.058_52] },
     ],
   },
   {
     cluster: 4,
     points: [
-      { type: "Point", coordinates: [37.00202, -122.05834] },
-      { type: "Point", coordinates: [37.00193, -122.05852] },
-      { type: "Point", coordinates: [36.9995, -122.06361] },
+      { type: "Point", coordinates: [37.002_02, -122.058_34] },
+      { type: "Point", coordinates: [37.001_93, -122.058_52] },
+      { type: "Point", coordinates: [36.9995, -122.063_61] },
     ],
   },
   {
     cluster: 5,
     points: [
-      { type: "Point", coordinates: [37.00202, -122.05834] },
-      { type: "Point", coordinates: [37.00193, -122.05852] },
-      { type: "Point", coordinates: [37.00075, -122.06052] },
+      { type: "Point", coordinates: [37.002_02, -122.058_34] },
+      { type: "Point", coordinates: [37.001_93, -122.058_52] },
+      { type: "Point", coordinates: [37.000_75, -122.060_52] },
     ],
   },
   {
     cluster: 6,
     points: [
-      { type: "Point", coordinates: [37.00197, -122.05839] },
-      { type: "Point", coordinates: [37.00202, -122.05839] },
-      { type: "Point", coordinates: [37.00199, -122.05848] },
+      { type: "Point", coordinates: [37.001_97, -122.058_39] },
+      { type: "Point", coordinates: [37.002_02, -122.058_39] },
+      { type: "Point", coordinates: [37.001_99, -122.058_48] },
     ],
   },
   {
     cluster: 7,
     points: [
-      { type: "Point", coordinates: [37.00236, -122.05834] },
-      { type: "Point", coordinates: [37.00196, -122.05927] },
-      { type: "Point", coordinates: [37.00153, -122.05808] },
+      { type: "Point", coordinates: [37.002_36, -122.058_34] },
+      { type: "Point", coordinates: [37.001_96, -122.059_27] },
+      { type: "Point", coordinates: [37.001_53, -122.058_08] },
     ],
   },
 ];
