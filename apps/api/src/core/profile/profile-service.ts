@@ -8,7 +8,7 @@ const ProfileSchema = profileSchema;
 const ProfileSchemaMongoose = toMongooseSchema(
   ProfileSchema.mongoose({
     schemaOptions: {
-      collection: "accounts",
+      collection: "profiles",
       versionKey: false,
     },
   })
@@ -16,4 +16,4 @@ const ProfileSchemaMongoose = toMongooseSchema(
 
 export interface IProfileSchemaMongoose extends z.infer<typeof ProfileSchema> {}
 
-export const ProfileService = databaseConnection.model<IProfileSchemaMongoose>("accounts", ProfileSchemaMongoose, "accounts");
+export const ProfileService = databaseConnection.model<IProfileSchemaMongoose>("profiles", ProfileSchemaMongoose, "profiles");
