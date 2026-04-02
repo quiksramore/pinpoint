@@ -43,14 +43,20 @@
         "noUselessElse": "warn",
         "noNegationElse": "off",
         "useConsistentArrowReturn": "warn",
-        "useImportType": "warn"
+        "useImportType": "warn",
+        "useConsistentTypeDefinitions": {
+          "options": {
+            "style": "type"
+          },
+          "level": "warn"
+        }
       },
       "suspicious": {
         "useAwait": "warn",
         "noConsole": "warn"
       },
       "complexity": {
-        "useSimplifiedLogicExpression": "warn",
+        "useSimplifiedLogicExpression": "off",
         "useOptionalChain": "warn",
         "noExcessiveCognitiveComplexity": {
           "options": {

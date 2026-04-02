@@ -4,10 +4,11 @@ import { pinTypes } from "../pins-and-points/pins-schema";
 export const PIN_DISPLAY_LIMIT = 2;
 export const EXTENDED_PIN_DISPLAY_LIMIT = 5;
 
+// TODO: figure out max character lengths for certain attributes
 export const profileSchema = z.object({
   _id: z.uuidv7(),
-  username: z.string(),
-  bio: z.string().optional(),
+  username: z.string().min(3).max(30),
+  bio: z.string().min(2).max(200).optional(),
   // TODO: how
   followers: z.number().nonnegative().int().default(0),
   following: z.number().nonnegative().int().default(0),

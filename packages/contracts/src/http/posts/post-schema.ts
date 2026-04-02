@@ -6,8 +6,8 @@ export const CAPTION_MAX_LENGTH = 500;
 export const pointSchema = z.object({
   type: z.literal("Point"),
   coordinates: z.tuple([
-    z.number().min(-180).max(180), // longitude
     z.number().min(-90).max(90), // latitude
+    z.number().min(-180).max(180), // longitude
   ]),
 });
 
@@ -39,7 +39,7 @@ export const postSchema = z.object({
     .array(z.object({ url: z.url(), location: pointSchema })) // R2 image URLs + location
     .min(1, "At least one image URL is required."),
   // biome-ignore format: readability
-  location: pointSchema, // voronoi centre
+  location: pointSchema, // centre
   metrics: z.object({
     upvotes: z.number().nonnegative().int().default(0),
     downvotes: z.number().nonnegative().int().default(0),

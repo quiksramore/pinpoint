@@ -60,6 +60,11 @@ export const postContract = {
           message: z.string(),
         }),
       },
+      UNPROCESSABLE_CONTENT: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
@@ -96,6 +101,11 @@ export const postContract = {
         }),
       },
       NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      UNPROCESSABLE_CONTENT: {
         data: z.object({
           message: z.string(),
         }),
