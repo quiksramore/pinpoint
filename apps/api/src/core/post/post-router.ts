@@ -73,45 +73,14 @@ export const postRouter = {
       return { _id: id };
     }
   ),
-  deletePost: protectedProcedure.post.deletePost.handler(async ({ input, context, errors: { NOT_FOUND, FORBIDDEN, INTERNAL_SERVER_ERROR } }) => {
-    const post = await PostService.findById(input).select({ _id: 1, authorId: 1 }).lean();
-
-    if (!post) {
-      throw NOT_FOUND({
-        data: {
-          message: `Post not found from ${context.user.name} with id ${input}`,
-        },
-      });
-    }
-
-    if (post.authorId !== context.user.id) {
-      throw FORBIDDEN({
-        data: {
-          message: "You are not allowed to delete this post.",
-        },
-      });
-    }
-
-    try {
-      const deleteResult = await PostService.deleteOne({ _id: input });
-      if (deleteResult.deletedCount === 1) return { success: true };
-      return { success: false };
-    } catch (error) {
-      throw INTERNAL_SERVER_ERROR({
-        data: {
-          message: `DB failed to delete post with id ${input}. ${error}`,
-        },
-      });
-    }
-  }),
-  editPost: protectedProcedure.post.editPost.handler(
-    async ({ input, context, errors: { INTERNAL_SERVER_ERROR, NOT_FOUND, FORBIDDEN, UNPROCESSABLE_CONTENT } }) => {
-      const post = await PostService.findById(input._id).select({ _id: 1, authorId: 1 }).lean();
+  deletePost: protectedProcedure.post.deletePost.handler(
+    async ({ input: postId, context, errors: { NOT_FOUND, FORBIDDEN, INTERNAL_SERVER_ERROR } }) => {
+      const post = await PostService.findById(postId).select({ _id: 1, authorId: 1 }).lean();
 
       if (!post) {
         throw NOT_FOUND({
           data: {
-            message: `Post not found with id ${input._id}`,
+            message: `Post with id ${postId} not found.`,
           },
         });
       }
@@ -119,12 +88,45 @@ export const postRouter = {
       if (post.authorId !== context.user.id) {
         throw FORBIDDEN({
           data: {
-            message: "You are not allowed to edit this post.",
+            message: "Forbidden.",
           },
         });
       }
 
-      if (input.title === undefined && input.caption === undefined) {
+      try {
+        const deleteResult = await PostService.deleteOne({ _id: postId });
+        if (deleteResult.deletedCount === 1) return { success: true };
+        return { success: false };
+      } catch (error) {
+        throw INTERNAL_SERVER_ERROR({
+          data: {
+            message: `DB failed to delete post with id ${postId}: ${error}`,
+          },
+        });
+      }
+    }
+  ),
+  editPost: protectedProcedure.post.editPost.handler(
+    async ({ input, context, errors: { INTERNAL_SERVER_ERROR, NOT_FOUND, FORBIDDEN, UNPROCESSABLE_CONTENT } }) => {
+      const post = await PostService.findById(input._id).select({ _id: 1, authorId: 1 }).lean();
+
+      if (!post) {
+        throw NOT_FOUND({
+          data: {
+            message: `Post with id ${input._id} not found.`,
+          },
+        });
+      }
+
+      if (post.authorId !== context.user.id) {
+        throw FORBIDDEN({
+          data: {
+            message: "Forbidden.",
+          },
+        });
+      }
+
+      if (!input.title && !input.caption) {
         throw UNPROCESSABLE_CONTENT({
           data: {
             message: "No fields provided to update.",
@@ -150,6 +152,7 @@ export const postRouter = {
           },
         });
       }
+
       try {
         const result = await PostService.updateOne({ _id: input._id, authorId: context.user.id }, { $set: tryParse.data });
         if (result.matchedCount === 0) return { success: true };
@@ -163,57 +166,22 @@ export const postRouter = {
       }
     }
   ),
-  getPosts: protectedProcedure.post.getPosts.handler(async ({ input, errors: { INTERNAL_SERVER_ERROR } }) => {
-    try {
-      const posts = await PostService.find({ authorId: input }).sort({ createdAt: -1 }).lean();
-      const parsedPosts = postSchema.array().safeParse(posts);
 
-      if (!parsedPosts.success) {
-        throw INTERNAL_SERVER_ERROR({
-          data: {
-            message: `Invalid post data found for authorId ${input}. ${parsedPosts.error.issues.map((issue) => issue.message).join(", ")}`,
-          },
-        });
-      }
+  getPosts: protectedProcedure.post.getPosts.handler(
+    async ({ input }) => await PostService.find({ authorId: input }).sort({ createdAt: -1 }).lean()
+  ),
 
-      return parsedPosts.data;
-    } catch (error) {
-      throw INTERNAL_SERVER_ERROR({
+  getPostById: protectedProcedure.post.getPostById.handler(async ({ input: postId, errors: { NOT_FOUND } }) => {
+    const post = await PostService.findById(postId).lean();
+
+    if (!post) {
+      throw NOT_FOUND({
         data: {
-          message: `DB failed to fetch posts for authorId ${input}. ${error}`,
+          message: `Post with id ${postId} not found`,
         },
       });
     }
-  }),
-  getPostById: protectedProcedure.post.getPostById.handler(async ({ input, errors: { INTERNAL_SERVER_ERROR, NOT_FOUND } }) => {
-    try {
-      const post = await PostService.findById(input).lean();
 
-      if (!post) {
-        throw NOT_FOUND({
-          data: {
-            message: `Post not found with id ${input}`,
-          },
-        });
-      }
-
-      const parsedPost = postSchema.safeParse(post);
-
-      if (!parsedPost.success) {
-        throw INTERNAL_SERVER_ERROR({
-          data: {
-            message: `Invalid post data found for id ${input}. ${parsedPost.error.issues.map((issue) => issue.message).join(", ")}`,
-          },
-        });
-      }
-
-      return parsedPost.data;
-    } catch (error) {
-      throw INTERNAL_SERVER_ERROR({
-        data: {
-          message: `DB failed to fetch post with id ${input}. ${error}`,
-        },
-      });
-    }
+    return post;
   }),
 };
