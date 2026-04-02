@@ -1,5 +1,6 @@
 import { pointSchema, postSchema } from "@pinpoint/contracts";
 import { v7 as uuidv7 } from "uuid";
+import type { z } from "zod";
 import { protectedProcedure } from "../../libs/orpc-procedures";
 import { getStrongestCluster } from "./location-util";
 import { PostService } from "./post-service";
@@ -30,7 +31,7 @@ export const postRouter = {
         });
       }
 
-      const postDoc = {
+      const postDoc: z.infer<typeof postSchema> = {
         _id: id,
         authorId: context.user.id,
         authorSnapshot: {
