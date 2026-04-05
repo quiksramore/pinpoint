@@ -1,7 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTrigger, DialogTitle, DialogDescription } from "@pinpoint/shad-ui/components/dialog";
 import CreatePostForm from "./create-post-form";
 import { Button } from "@pinpoint/shad-ui/components/button";
-import { Card, CardDescription, CardTitle } from "@pinpoint/shad-ui/components/card";
 
 export default function CreatePostButton() {
   return (

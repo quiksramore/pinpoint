@@ -31,10 +31,10 @@ export function MultiImages({ value, onChange }: MultiImagesProps) {
     },
     validation: {
       accept: {
-        "image/*": [".png", ".jpg", ".jpeg"],
+        "image/*": [".png", ".jpg", ".jpeg", ".heic"],
       },
-      maxSize: 10 * 1024 * 1024,
-      maxFiles: 10,
+      maxSize: 5 * 1024 * 1024,
+      maxFiles: 5,
     },
   });
 
@@ -43,7 +43,7 @@ export function MultiImages({ value, onChange }: MultiImagesProps) {
       <Dropzone {...dropzone}>
         <div>
           <div className="flex justify-between">
-            <DropzoneDescription>Please select up to 10 images</DropzoneDescription>
+            <DropzoneDescription>Please select up to 5 images</DropzoneDescription>
             <DropzoneMessage />
           </div>
           <DropZoneArea className="p-0">

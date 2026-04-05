@@ -16,7 +16,13 @@ export default function CreatePostForm() {
       }}
       className="flex w-full flex-col gap-4"
     >
-      <form.Field name="title" validators={{ onBlur: ({ value }) => value.length === 0 && "You must include a title!" }}>
+      <form.Field
+        name="title"
+        validators={{
+          onBlur: ({ value }) => value.length === 0 && "You must include a title!",
+          onChange: ({ value }) => value.length > 30 && "Title must be 30 characters or less!",
+        }}
+      >
         {(field) => (
           <div className="flex flex-col gap-2">
             <Label htmlFor={field.name} className="pointer-events-none">
@@ -34,7 +40,13 @@ export default function CreatePostForm() {
           </div>
         )}
       </form.Field>
-      <form.Field name="caption" validators={{ onBlur: ({ value }) => value.length === 0 && "You must include a caption!" }}>
+      <form.Field
+        name="caption"
+        validators={{
+          onBlur: ({ value }) => value.length === 0 && "You must include a caption!",
+          onChange: ({ value }) => value.length > 500 && "Caption must be 500 characters or less!",
+        }}
+      >
         {(field) => (
           <div className="flex flex-col gap-2">
             <Label htmlFor={field.name} className="pointer-events-none">
