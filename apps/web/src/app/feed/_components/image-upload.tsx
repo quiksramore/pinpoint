@@ -11,6 +11,7 @@ import {
   useDropzone,
 } from "@pinpoint/shad-ui/components/dropzone";
 import { CloudUploadIcon, Trash2Icon } from "lucide-react";
+import Image from "next/image";
 
 type MultiImagesProps = {
   value: File[]; // form field value
@@ -61,8 +62,14 @@ export function MultiImages({ value, onChange }: MultiImagesProps) {
             <DropzoneFileListItem className="overflow-hidden rounded-md bg-secondary p-0 shadow-sm" key={file.id} file={file}>
               {file.status === "pending" && <div className="aspect-video animate-pulse bg-black/20" />}
               {file.status === "success" && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={file.result} alt={`uploaded-${file.fileName}`} className="aspect-video object-cover" />
+                <Image
+                  src={file.result} // blob URL
+                  alt={`uploaded-${file.fileName}`}
+                  className="aspect-video object-cover"
+                  width={400} // set a width
+                  height={300} // set a height
+                  unoptimized // allow object URLs
+                />
               )}
               <div className="flex items-center justify-between p-2 pl-4">
                 <div className="min-w-0">
@@ -71,7 +78,7 @@ export function MultiImages({ value, onChange }: MultiImagesProps) {
                 </div>
                 <DropzoneRemoveFile
                   variant="ghost"
-                  className="shrink-0 hover:outline"
+                  className="shrink-0 hover:outline cursor-pointer"
                   onClick={() => {
                     const fileIndex = dropzone.fileStatuses.findIndex((status) => status.id === file.id);
                     dropzone.onRemoveFile(file.id).then(undefined, () => undefined);

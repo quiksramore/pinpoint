@@ -4,6 +4,8 @@ import { Input } from "@pinpoint/shad-ui/components/input";
 import { Textarea } from "@pinpoint/shad-ui/components/textarea";
 import { useForm } from "@tanstack/react-form-nextjs";
 import { MultiImages } from "./image-upload";
+import { ScrollArea } from "@pinpoint/shad-ui/components/scroll-area";
+
 export default function CreatePostForm() {
   const form = useForm({ defaultValues: { title: "", caption: "", files: [] as File[] } });
   return (
@@ -13,7 +15,7 @@ export default function CreatePostForm() {
         e.stopPropagation();
         form.handleSubmit();
       }}
-      className="flex flex-col gap-4"
+      className="flex w-full flex-col gap-4"
     >
       <form.Field name="title" validators={{ onBlur: ({ value }) => value.length === 0 && "You must include a title!" }}>
         {(field) => (
@@ -46,6 +48,7 @@ export default function CreatePostForm() {
               name={field.name}
               value={field.state.value}
               placeholder="Super cool day at the beach..."
+              className="resize-y"
             />
             {!field.state.meta.isValid && <em className="text-destructive text-sm">{field.state.meta.errors.join(", ")}</em>}
           </div>
