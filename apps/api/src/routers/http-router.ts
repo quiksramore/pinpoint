@@ -1,5 +1,7 @@
+import { commentRouter } from "../core/comments/comment-router";
 import { postRouter } from "../core/post/post-router";
 
 export const httpRouter = {
-  posts: postRouter,
+  post: postRouter,
+  comment: commentRouter,
 };
