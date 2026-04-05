@@ -117,7 +117,7 @@ function calculateCentroid(points: z.infer<typeof pointSchema>[]): z.infer<typeo
   const centroidLng = sumLng / points.length;
   const centroidLat = sumLat / points.length;
 
-  return pointSchema.parse({ type: "Point", coordinates: [centroidLng, centroidLat] });
+  return pointSchema.parse({ coordinates: [centroidLng, centroidLat] });
 }
 
 // TODO: exported for unit testing
