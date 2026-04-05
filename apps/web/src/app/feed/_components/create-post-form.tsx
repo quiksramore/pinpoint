@@ -5,6 +5,11 @@ import { Textarea } from "@pinpoint/shad-ui/components/textarea";
 import { useForm } from "@tanstack/react-form-nextjs";
 import { MultiImages } from "./image-upload";
 
+const autoResizeTextarea = (element: HTMLTextAreaElement) => {
+  element.style.height = "auto";
+  element.style.height = `${element.scrollHeight}px`;
+};
+
 export default function CreatePostForm() {
   const form = useForm({ defaultValues: { title: "", caption: "", files: [] as File[] } });
   return (
@@ -53,13 +58,17 @@ export default function CreatePostForm() {
               Caption
             </Label>
             <Textarea
-              onChange={(e) => field.handleChange(e.target.value)}
+              onChange={(e) => {
+                autoResizeTextarea(e.currentTarget);
+                field.handleChange(e.target.value);
+              }}
+              onInput={(e) => autoResizeTextarea(e.currentTarget)}
               onBlur={field.handleBlur}
               id={field.name}
               name={field.name}
               value={field.state.value}
               placeholder="Super cool day at the beach..."
-              className="resize-y"
+              className="field-sizing-fixed w-full max-w-full resize-none overflow-x-hidden overflow-y-hidden"
             />
             {!field.state.meta.isValid && <em className="text-destructive text-sm">{field.state.meta.errors.join(", ")}</em>}
           </div>
