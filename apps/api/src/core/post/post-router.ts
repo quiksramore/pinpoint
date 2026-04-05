@@ -10,6 +10,7 @@ import type { z } from "zod";
 import { protectedProcedure, publicProcedure } from "../../libs/orpc-procedures";
 import { getStrongestCluster } from "./location-util";
 import { PostService } from "./post-service";
+import {ProfileService} from "../profile/profile-service";
 
 export const uploadToR2 = async (postId: string, file: File, index: number) => {
   const fileBuffer = await file.arrayBuffer();
@@ -48,8 +49,13 @@ export const postRouter = {
   // TODO convert this to protectedProcedure
   createPost: publicProcedure.posts.createPost.handler(async ({ input, context, errors: { UNPROCESSABLE_CONTENT, INTERNAL_SERVER_ERROR } }) => {
     const id = uuidv7();
+    const profileDocument = await ProfileService.findById({ _id: context.user.id });
 
-    // TODO: set up user validation
+    if (!profileDocument) {
+      throw NOT_FOUND({
+        data: { message: `User not found with email: ${context.user.email}` },
+      });
+    }
 
     const synthesisedImages = await Promise.all(
       input.images.map(async (file, index) => {
