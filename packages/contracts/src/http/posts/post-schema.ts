@@ -4,7 +4,6 @@ export const TITLE_MAX_LENGTH = 30;
 export const CAPTION_MAX_LENGTH = 500;
 
 export const pointSchema = z.object({
-  type: z.literal("Point"),
   coordinates: z.tuple([
     z.number().min(-90).max(90), // latitude
     z.number().min(-180).max(180), // longitude
