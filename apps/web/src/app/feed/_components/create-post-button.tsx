@@ -1,0 +1,20 @@
+import { Dialog, DialogContent, DialogHeader, DialogTrigger, DialogTitle, DialogDescription } from "@pinpoint/shad-ui/components/dialog";
+import CreatePostForm from "./create-post-form";
+import { Button } from "@pinpoint/shad-ui/components/button";
+
+export default function CreatePostButton() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="rounded-full">Create Post</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create Post</DialogTitle>
+          <DialogDescription>Create a New Post!</DialogDescription>
+        </DialogHeader>
+        <CreatePostForm />
+      </DialogContent>
+    </Dialog>
+  );
+}
