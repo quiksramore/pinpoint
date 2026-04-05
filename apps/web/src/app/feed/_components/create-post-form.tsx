@@ -4,7 +4,6 @@ import { Input } from "@pinpoint/shad-ui/components/input";
 import { Textarea } from "@pinpoint/shad-ui/components/textarea";
 import { useForm } from "@tanstack/react-form-nextjs";
 import { MultiImages } from "./image-upload";
-import { ScrollArea } from "@pinpoint/shad-ui/components/scroll-area";
 
 export default function CreatePostForm() {
   const form = useForm({ defaultValues: { title: "", caption: "", files: [] as File[] } });

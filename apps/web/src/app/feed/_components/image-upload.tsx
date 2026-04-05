@@ -46,8 +46,8 @@ export function MultiImages({ value, onChange }: MultiImagesProps) {
             <DropzoneDescription>Please select up to 10 images</DropzoneDescription>
             <DropzoneMessage />
           </div>
-          <DropZoneArea>
-            <DropzoneTrigger className="flex flex-col items-center gap-4 bg-transparent p-10 text-center text-sm">
+          <DropZoneArea className="p-0">
+            <DropzoneTrigger className="flex flex-col items-center gap-4 bg-transparent p-10 text-center text-sm w-full">
               <CloudUploadIcon className="size-8" />
               <div>
                 <p className="font-semibold">Upload listing images</p>

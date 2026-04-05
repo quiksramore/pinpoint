@@ -9,7 +9,7 @@ export default function CreatePostButton() {
       <DialogTrigger asChild>
         <Button className="rounded-full">Create Post</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="w-full">
         {/* <Card>
             <CardTitle>Create Post</CardTitle>
             <CardDescription>Create a New Post!</CardDescription>
