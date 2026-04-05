@@ -8,7 +8,7 @@ import { PostService } from "./post-service";
 export const postRouter = {
   createPost: protectedProcedure.post.createPost.handler(
     async ({ input, context, errors: { UNPROCESSABLE_CONTENT, INTERNAL_SERVER_ERROR } }) => {
-      const fallbackPoint = pointSchema.parse({ type: "Point", coordinates: [0, 0] });
+      const fallbackPoint = pointSchema.parse({ latitude: 0, longitude: 0 });
       const id = uuidv7();
 
       // TODO: set up user validation
