@@ -53,7 +53,7 @@ export const postRouter = {
 
     if (!profileDocument) {
       throw NOT_FOUND({
-        data: { message: `User not found with email: ${context.user.email}` },
+        data: { message: `User not found with id: ${context.user.id}` },
       });
     }
 
