@@ -4,10 +4,8 @@ export const TITLE_MAX_LENGTH = 30;
 export const CAPTION_MAX_LENGTH = 500;
 
 export const pointSchema = z.object({
-  coordinates: z.tuple([
-    z.number().min(-90).max(90), // latitude
-    z.number().min(-180).max(180), // longitude
-  ]),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
 });
 
 export const VALID_MIME_TYPES = ["image/jpeg", "image/png", "image/heic", "image/heif", "image/dng"] as const;
