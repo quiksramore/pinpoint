@@ -14,7 +14,9 @@ import {
   FileRejection,
   useDropzone as rootUseDropzone,
 } from "react-dropzone";
-import { Button, ButtonProps } from "@pinpoint/shad-ui/components/button";
+import { Button } from "@pinpoint/shad-ui/components/button";
+
+type DropzoneButtonProps = React.ComponentProps<typeof Button>;
 
 type DropzoneResult<TUploadRes, TUploadError> =
   | {
@@ -344,8 +346,9 @@ const useDropzone = <TUploadRes, TUploadError = string>(
         shiftOnMaxFiles === true ? newFiles : newFiles.slice(0, maxNewFiles);
 
       const onDropFilePromises = slicedNewFiles.map(async (file, index) => {
-        if (fileCount + 1 > maxNewFiles) {
-          await onRemoveFile(fileStatuses[index].id);
+        const fileStatusToRemove = fileStatuses[index];
+        if (fileCount + 1 > maxNewFiles && fileStatusToRemove) {
+          await onRemoveFile(fileStatusToRemove.id);
         }
 
         const id = crypto.randomUUID();
@@ -655,7 +658,7 @@ const DropzoneMessage = forwardRef<HTMLParagraphElement, DropzoneMessageProps>(
 );
 DropzoneMessage.displayName = "DropzoneMessage";
 
-interface DropzoneRemoveFileProps extends ButtonProps {}
+interface DropzoneRemoveFileProps extends DropzoneButtonProps {}
 
 const DropzoneRemoveFile = forwardRef<
   HTMLButtonElement,
@@ -686,7 +689,7 @@ const DropzoneRemoveFile = forwardRef<
 });
 DropzoneRemoveFile.displayName = "DropzoneRemoveFile";
 
-interface DropzoneRetryFileProps extends ButtonProps {}
+interface DropzoneRetryFileProps extends DropzoneButtonProps {}
 
 const DropzoneRetryFile = forwardRef<HTMLButtonElement, DropzoneRetryFileProps>(
   ({ className, ...props }, ref) => {

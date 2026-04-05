@@ -12,14 +12,13 @@ import {
 } from "@pinpoint/shad-ui/components/dropzone";
 import { CloudUploadIcon, Trash2Icon } from "lucide-react";
 
-interface MultiImagesProps {
+type MultiImagesProps = {
   value: File[]; // form field value
   onChange: (files: File[]) => void; // update form field
-}
+};
 
 export function MultiImages({ value, onChange }: MultiImagesProps) {
   const dropzone = useDropzone({
-    files: value, // controlled by form
     onDropFile: async (file: File) => {
       await new Promise((resolve) => setTimeout(resolve, 500));
       const newFiles = [...value, file];
@@ -74,8 +73,14 @@ export function MultiImages({ value, onChange }: MultiImagesProps) {
                   variant="ghost"
                   className="shrink-0 hover:outline"
                   onClick={() => {
-                    const filtered = value.filter((f) => f !== file.file);
-                    onChange(filtered); // update form
+                    const fileIndex = dropzone.fileStatuses.findIndex((status) => status.id === file.id);
+                    dropzone.onRemoveFile(file.id).then(undefined, () => undefined);
+
+                    if (fileIndex === -1) {
+                      return;
+                    }
+
+                    onChange(value.filter((_, index) => index !== fileIndex));
                   }}
                 >
                   <Trash2Icon className="size-4" />
