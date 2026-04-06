@@ -1,7 +1,6 @@
 import { oc } from "@orpc/contract";
 import { z } from "zod";
-import { voteSchema } from "../vote/vote-schema";
-import { commentSchema } from "./comment-schema";
+import { commentLikeSchema, commentSchema } from "./comment-schema";
 
 export const commentContract = {
   addComment: oc
@@ -73,75 +72,6 @@ export const commentContract = {
         }),
       },
     }),
-  addVote: oc
-    .route({
-      method: "POST",
-      description: "Add a vote",
-    })
-    .input(
-      voteSchema.pick({
-        postId: true,
-        authorId: true,
-        voteValue: true,
-      })
-    )
-    .output(voteSchema.shape._id)
-    .errors({
-      NOT_FOUND: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      FORBIDDEN: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-    }),
-  removeVote: oc
-    .route({
-      method: "DELETE",
-      description: "Remove your vote",
-    })
-    .input(voteSchema.shape._id)
-    .output(
-      z.object({
-        success: z.boolean(),
-        error: z.string().optional(),
-      })
-    )
-    .errors({
-      NOT_FOUND: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      FORBIDDEN: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-    }),
   likeComment: oc
     .route({
       method: "POST",
@@ -181,7 +111,12 @@ export const commentContract = {
       method: "DELETE",
       description: "Unliked a comment",
     })
-    .input(commentSchema.shape._id)
+    .input(
+      z.object({
+        commentLikeId: commentLikeSchema.shape._id,
+        parentCommentId: commentLikeSchema.shape.parentCommentId,
+      })
+    )
     .output(
       z.object({
         success: z.boolean(),
