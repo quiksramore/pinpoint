@@ -11,6 +11,39 @@ import { protectedProcedure, publicProcedure } from "../../libs/orpc-procedures"
 import { getStrongestCluster } from "./location-util";
 import { PostService } from "./post-service";
 
+export const uploadToR2 = async (postId: string, file: File, index: number) => {
+  const fileBuffer = await file.arrayBuffer();
+  let uploadMimeType = (await fileTypeFromBuffer(fileBuffer))?.mime;
+
+  let fileExtension = file.name.split(".").pop();
+  let body = fileBuffer;
+
+  if (uploadMimeType === "image/heic" || uploadMimeType === "image/heif") {
+    body = await heicConvert({
+      buffer: Buffer.from(fileBuffer),
+      format: "JPEG",
+      quality: 1,
+    });
+
+    fileExtension = "jpg";
+    uploadMimeType = "image/jpeg";
+  }
+
+  const s3 = new S3Client({
+    accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY,
+    bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME,
+    endpoint: `https://${process.env.CLOUDFLARE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  });
+
+  const key = `${postId}/${index}`;
+  await write(s3.file(`${key}.${fileExtension}`), new Blob([body], { type: uploadMimeType }));
+
+  Bun.gc(true); // heic-convert has some sort of memory leak.
+
+  return `${key}.${fileExtension}`;
+};
+
 export const postRouter = {
   createPost: publicProcedure.post.createPost.handler(async ({ input, context, errors: { UNPROCESSABLE_CONTENT, INTERNAL_SERVER_ERROR } }) => {
     const id = uuidv7();
