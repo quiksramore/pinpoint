@@ -1,11 +1,9 @@
-import { Button } from "@pinpoint/shad-ui/components/button";
-import CreatePostButton from "./_components/create-post-button";
-import { Textarea } from "@pinpoint/shad-ui/components/textarea";
+import CreatePostDialog from "./_components/create-post-dialog";
 
 export default function Page() {
   return (
     <main>
-      <CreatePostButton />
+      <CreatePostDialog />
       {/* <Textarea className=" w-1/2" /> */}
     </main>
   );
