@@ -3,6 +3,7 @@ import { z } from "zod";
 export const commentSchema = z.object({
   _id: z.uuidv7(),
   parentPostId: z.uuidv7(),
+  authorId: z.uuidv7(),
   authorSnapshot: z.object(
     {
       name: z.string().min(1, "Author name must be provided."),
