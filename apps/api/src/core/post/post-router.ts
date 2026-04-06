@@ -45,13 +45,14 @@ export const uploadToR2 = async (postId: string, file: File, index: number) => {
 };
 
 export const postRouter = {
+  // TODO convert this to protectedProcedure
   createPost: publicProcedure.post.createPost.handler(async ({ input, context, errors: { UNPROCESSABLE_CONTENT, INTERNAL_SERVER_ERROR } }) => {
     const id = uuidv7();
 
     // TODO: set up user validation
 
     const synthesisedImages = await Promise.all(
-      input.images.map(async ({ file }, index) => {
+      input.images.map(async (file, index) => {
         const originalBuffer = await file.arrayBuffer();
 
         const tempDir = tmpdir();

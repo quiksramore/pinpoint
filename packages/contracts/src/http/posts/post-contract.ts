@@ -1,7 +1,7 @@
 import { oc } from "@orpc/contract";
 import { z } from "zod";
 import { profileSchema } from "../profile/profile-schema";
-import { postSchema, uploadPhotoInput } from "./post-schema";
+import { postSchema, uiCreatePostFormSchema } from "./post-schema";
 
 export const postContract = {
   createPost: oc
@@ -9,16 +9,7 @@ export const postContract = {
       method: "POST",
       description: "Create a new post",
     })
-    .input(
-      postSchema
-        .pick({
-          title: true,
-          caption: true,
-        })
-        .extend({
-          images: z.array(uploadPhotoInput),
-        })
-    )
+    .input(uiCreatePostFormSchema)
     .output(
       z.object({
         _id: z.uuidv7(),
