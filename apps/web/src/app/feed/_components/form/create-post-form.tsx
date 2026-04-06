@@ -30,24 +30,9 @@ export default function CreatePostForm() {
       }}
       className="flex w-full flex-col gap-4"
     >
-      </form.Field>
-      <form.Field
-        name="files"
-        validators={{
-          onChange: ({ value }) => value.length === 0 && "Please upload at least one photo!",
-        }}
-      >
-        {(field) => (
-          <div>
-            <Label className="pointer-events-none">Photos</Label>
-            <MultiImages
-              value={field.state.value} // form value
-              onChange={field.handleChange} // update form
-            />
-            {!field.state.meta.isValid && <em className="text-destructive text-sm">{field.state.meta.errors.join(", ")}</em>}
-          </div>
-        )}
-      </form.Field>
+      <form.AppField name="title">{(field) => <field.TitleField />}</form.AppField>
+      <form.AppField name="caption">{(field) => <field.CaptionField />}</form.AppField>
+      <form.AppField name="images">{(field) => <field.ImagesField />}</form.AppField>
       <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
         {([canSubmit, isSubmitting]) => (
           <Button type="submit" disabled={!canSubmit} className={cn("cursor-pointer", !canSubmit && "cursor-not-allowed")}>

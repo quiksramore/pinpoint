@@ -2,6 +2,7 @@ import z from "zod";
 
 export const TITLE_MAX_LENGTH = 30;
 export const CAPTION_MAX_LENGTH = 500;
+export const MAX_IMAGES = 5;
 
 export const pointSchema = z.object({
   latitude: z.number().min(-90).max(90),
@@ -41,3 +42,12 @@ export const postSchema = z.object({
   editedAt: z.date().optional(),
   createdAt: z.coerce.date(),
 });
+
+export const uiCreatePostFormSchema = postSchema
+  .pick({
+    title: true,
+    caption: true,
+  })
+  .extend({
+    images: z.array(z.file()).min(1, "At least one image is required.").max(MAX_IMAGES, `Maximum of ${MAX_IMAGES} images allowed.`),
+  });
