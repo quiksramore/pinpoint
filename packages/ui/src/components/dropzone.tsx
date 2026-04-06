@@ -346,11 +346,6 @@ const useDropzone = <TUploadRes, TUploadError = string>(
         shiftOnMaxFiles === true ? newFiles : newFiles.slice(0, maxNewFiles);
 
       const onDropFilePromises = slicedNewFiles.map(async (file, index) => {
-        const fileStatusToRemove = fileStatuses[index];
-        if (fileCount + 1 > maxNewFiles && fileStatusToRemove) {
-          await onRemoveFile(fileStatusToRemove.id);
-        }
-
         const id = crypto.randomUUID();
         dispatch({ type: "add", fileName: file.name, file, id });
         await _uploadFile(file, id);
@@ -757,6 +752,9 @@ const DropzoneTrigger = forwardRef<HTMLLabelElement, DropzoneTriggerProps>(
         {children}
         <input
           {...context.getInputProps({
+            onClick: (event) => {
+              event.currentTarget.value = "";
+            },
             style: {
               display: undefined,
             },

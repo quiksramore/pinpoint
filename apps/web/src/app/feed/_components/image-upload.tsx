@@ -14,19 +14,33 @@ import { CloudUploadIcon, Trash2Icon } from "lucide-react";
 import Image from "next/image";
 import { useRef } from "react";
 
+export type FileEntry = {
+  id: string;
+  file: File;
+};
+
 type MultiImagesProps = {
-  value: File[]; // form field value
-  onChange: (files: File[]) => void; // update form field
+  value: FileEntry[];
+  onChange: (files: FileEntry[]) => void;
 };
 
 export function MultiImages({ value, onChange }: MultiImagesProps) {
-  const valueRef = useRef<File[]>(value);
+  const valueRef = useRef(value);
   valueRef.current = value;
 
   const dropzone = useDropzone({
     onDropFile: async (file: File) => {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      onChange([...valueRef.current, file]);
+
+      if (valueRef.current.length >= 5) {
+        return {
+          status: "error",
+          error: "Maximum of 5 images allowed",
+        };
+      }
+
+      onChange([...valueRef.current, { id: crypto.randomUUID(), file }]);
+
       return {
         status: "success",
         result: URL.createObjectURL(file),
@@ -61,36 +75,31 @@ export function MultiImages({ value, onChange }: MultiImagesProps) {
         </div>
 
         <DropzoneFileList className="grid grid-cols-3 gap-3 p-0">
-          {dropzone.fileStatuses.map((file) => (
-            <DropzoneFileListItem className="overflow-hidden rounded-md bg-secondary p-0 shadow-sm" key={file.id} file={file}>
-              {file.status === "pending" && <div className="aspect-video animate-pulse bg-black/20" />}
-              {file.status === "success" && (
+          {dropzone.fileStatuses.map((fileStatus, index) => (
+            <DropzoneFileListItem className="overflow-hidden rounded-md bg-secondary p-0 shadow-sm" key={fileStatus.id} file={fileStatus}>
+              {fileStatus.status === "success" ? (
                 <Image
-                  src={file.result} // blob URL
-                  alt={`uploaded-${file.fileName}`}
+                  src={fileStatus.result}
+                  alt={`uploaded-${fileStatus.fileName}`}
                   className="aspect-video object-cover"
-                  width={400} // set a width
-                  height={300} // set a height
-                  unoptimized // allow object URLs
+                  width={400}
+                  height={300}
+                  unoptimized
                 />
+              ) : (
+                <div className="aspect-video animate-pulse bg-black/20" />
               )}
               <div className="flex items-center justify-between p-2 pl-4">
                 <div className="min-w-0">
-                  <p className="truncate text-sm">{file.fileName}</p>
-                  <p className="text-xs text-muted-foreground">{(file.file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                  <p className="truncate text-sm">{fileStatus.fileName}</p>
+                  <p className="text-xs text-muted-foreground">{(fileStatus.file.size / (1024 * 1024)).toFixed(2)} MB</p>
                 </div>
                 <DropzoneRemoveFile
                   variant="ghost"
                   className="shrink-0 hover:outline cursor-pointer"
                   onClick={() => {
-                    const fileIndex = dropzone.fileStatuses.findIndex((status) => status.id === file.id);
-                    dropzone.onRemoveFile(file.id).then(undefined, () => undefined);
-
-                    if (fileIndex === -1) {
-                      return;
-                    }
-
-                    onChange(value.filter((_, index) => index !== fileIndex));
+                    dropzone.onRemoveFile(fileStatus.id).then(undefined, () => undefined);
+                    onChange(value.filter((_, i) => i !== index));
                   }}
                 >
                   <Trash2Icon className="size-4" />

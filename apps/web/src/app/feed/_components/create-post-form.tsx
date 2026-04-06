@@ -3,7 +3,7 @@ import { Label } from "@pinpoint/shad-ui/components/label";
 import { Input } from "@pinpoint/shad-ui/components/input";
 import { Textarea } from "@pinpoint/shad-ui/components/textarea";
 import { useForm } from "@tanstack/react-form-nextjs";
-import { MultiImages } from "./image-upload";
+import { FileEntry, MultiImages } from "./image-upload";
 import { Button } from "@pinpoint/shad-ui/components/button";
 import { cn } from "@pinpoint/shad-ui/lib/utils";
 
@@ -13,7 +13,7 @@ const autoResizeTextarea = (element: HTMLTextAreaElement) => {
 };
 
 export default function CreatePostForm() {
-  const form = useForm({ defaultValues: { title: "", caption: "", files: [] as File[] }, onSubmit: (values) => console.log(values.value) });
+  const form = useForm({ defaultValues: { title: "", caption: "", files: [] as FileEntry[] }, onSubmit: (values) => console.log(values.value) });
   return (
     <form
       onSubmit={(e) => {
