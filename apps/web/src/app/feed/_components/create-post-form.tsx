@@ -4,6 +4,8 @@ import { Input } from "@pinpoint/shad-ui/components/input";
 import { Textarea } from "@pinpoint/shad-ui/components/textarea";
 import { useForm } from "@tanstack/react-form-nextjs";
 import { MultiImages } from "./image-upload";
+import { Button } from "@pinpoint/shad-ui/components/button";
+import { cn } from "@pinpoint/shad-ui/lib/utils";
 
 const autoResizeTextarea = (element: HTMLTextAreaElement) => {
   element.style.height = "auto";
@@ -11,7 +13,7 @@ const autoResizeTextarea = (element: HTMLTextAreaElement) => {
 };
 
 export default function CreatePostForm() {
-  const form = useForm({ defaultValues: { title: "", caption: "", files: [] as File[] } });
+  const form = useForm({ defaultValues: { title: "", caption: "", files: [] as File[] }, onSubmit: (values) => console.log(values.value) });
   return (
     <form
       onSubmit={(e) => {
@@ -25,7 +27,7 @@ export default function CreatePostForm() {
         name="title"
         validators={{
           onBlur: ({ value }) => value.length === 0 && "You must include a title!",
-          onChange: ({ value }) => value.length > 30 && "Title must be 30 characters or less!",
+          onChange: ({ value }) => value.length >= 30 && "Title must be 30 characters or less!",
         }}
       >
         {(field) => (
@@ -34,6 +36,7 @@ export default function CreatePostForm() {
               Title
             </Label>
             <Input
+              maxLength={30}
               onChange={(e) => field.handleChange(e.target.value)}
               onBlur={field.handleBlur}
               id={field.name}
@@ -49,7 +52,7 @@ export default function CreatePostForm() {
         name="caption"
         validators={{
           onBlur: ({ value }) => value.length === 0 && "You must include a caption!",
-          onChange: ({ value }) => value.length > 500 && "Caption must be 500 characters or less!",
+          onChange: ({ value }) => value.length >= 500 && "Caption must be 500 characters or less!",
         }}
       >
         {(field) => (
@@ -62,6 +65,7 @@ export default function CreatePostForm() {
                 autoResizeTextarea(e.currentTarget);
                 field.handleChange(e.target.value);
               }}
+              maxLength={500}
               onInput={(e) => autoResizeTextarea(e.currentTarget)}
               onBlur={field.handleBlur}
               id={field.name}
@@ -77,7 +81,7 @@ export default function CreatePostForm() {
       <form.Field
         name="files"
         validators={{
-          onBlur: ({ value }) => value.length === 0 && "Please upload at least one photo!",
+          onChange: ({ value }) => value.length === 0 && "Please upload at least one photo!",
         }}
       >
         {(field) => (
@@ -91,6 +95,16 @@ export default function CreatePostForm() {
           </div>
         )}
       </form.Field>
+      <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+        {([canSubmit, isSubmitting]) => (
+          <Button type="submit" disabled={!canSubmit} className={cn("cursor-pointer", !canSubmit && "cursor-not-allowed")}>
+            {isSubmitting ? "Creating..." : "Create Post"}
+          </Button>
+        )}
+      </form.Subscribe>
+      {/* <form.Subscribe>
+        <pre>{JSON.stringify(form.state, null, 2)}</pre>
+      </form.Subscribe> */}
     </form>
   );
 }
