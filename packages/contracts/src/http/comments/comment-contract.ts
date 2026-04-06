@@ -32,11 +32,6 @@ export const commentContract = {
           message: z.string(),
         }),
       },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
     }),
   deleteComment: oc
     .route({
@@ -66,11 +61,6 @@ export const commentContract = {
           message: z.string(),
         }),
       },
-      UNAUTHORIZED: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
     }),
   likeComment: oc
     .route({
@@ -96,11 +86,6 @@ export const commentContract = {
         }),
       },
       FORBIDDEN: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
         data: z.object({
           message: z.string(),
         }),
@@ -135,11 +120,6 @@ export const commentContract = {
         }),
       },
       FORBIDDEN: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
         data: z.object({
           message: z.string(),
         }),
