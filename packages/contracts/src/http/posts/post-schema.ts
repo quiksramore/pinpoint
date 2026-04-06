@@ -10,13 +10,6 @@ export const pointSchema = z.object({
 
 export const VALID_MIME_TYPES = ["image/jpeg", "image/png", "image/heic", "image/heif", "image/dng"] as const;
 
-// TODO consider removing `id` from this. it's only used in the frontend for React keys
-export const uploadPhotoInput = z.object({
-  id: z.uuidv7(),
-  file: z.file("Invalid file."),
-  mimeType: z.enum(VALID_MIME_TYPES, "Invalid file type."),
-});
-
 export const postSchema = z.object({
   _id: z.uuidv7(),
   // biome-ignore format: readability
@@ -26,16 +19,16 @@ export const postSchema = z.object({
     name: z.string(),
     image: z.string(),
   }),
-  title: z.string().min(1, "Title must be at least 1 character.").max(TITLE_MAX_LENGTH, `Title must be ${TITLE_MAX_LENGTH} characters or less.`),
+  title: z.string().min(1, "A title is required.").max(TITLE_MAX_LENGTH, `Title must be ${TITLE_MAX_LENGTH} characters or less.`),
   // biome-ignore format: readability
   caption: z
     .string()
-    .min(1, "Caption must be at least 1 character.")
+    .min(1, "A caption is required.")
     .max(CAPTION_MAX_LENGTH, `Caption must be ${CAPTION_MAX_LENGTH} characters or less.`),
   // biome-ignore format: readability
   images: z
     .array(z.object({ suburl: z.string(), location: pointSchema })) // R2 image URLs + location
-    .min(1, "At least one image URL is required."),
+    .min(1, "At least one image is required."),
   // biome-ignore format: readability
   location: pointSchema, // centre
   metrics: z.object({
