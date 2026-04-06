@@ -10,6 +10,7 @@ export const pointSchema = z.object({
 
 export const VALID_MIME_TYPES = ["image/jpeg", "image/png", "image/heic", "image/heif", "image/dng"] as const;
 
+// TODO consider removing `id` from this. it's only used in the frontend for React keys
 export const uploadPhotoInput = z.object({
   id: z.uuidv7(),
   file: z.file("Invalid file."),
@@ -33,7 +34,7 @@ export const postSchema = z.object({
     .max(CAPTION_MAX_LENGTH, `Caption must be ${CAPTION_MAX_LENGTH} characters or less.`),
   // biome-ignore format: readability
   images: z
-    .array(z.object({ url: z.url(), location: pointSchema })) // R2 image URLs + location
+    .array(z.object({ suburl: z.string(), location: pointSchema })) // R2 image URLs + location
     .min(1, "At least one image URL is required."),
   // biome-ignore format: readability
   location: pointSchema, // centre

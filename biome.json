@@ -7,7 +7,8 @@
   "javascript": {
     "formatter": {
       "lineWidth": 145
-    }
+    },
+    "globals": ["Bun"]
   },
   "assist": {
     "actions": {
