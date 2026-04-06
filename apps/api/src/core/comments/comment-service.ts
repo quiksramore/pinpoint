@@ -16,4 +16,4 @@ const commentSchemaMongoose = toMongooseSchema(
 
 export interface ICommentSchemaMongoose extends z.infer<typeof CommentSchema> {}
 
-export const CommentService = databaseConnection.model<ICommentSchemaMongoose>("posts", commentSchemaMongoose, "posts");
+export const CommentService = databaseConnection.model<ICommentSchemaMongoose>("comments", commentSchemaMongoose, "comments");
