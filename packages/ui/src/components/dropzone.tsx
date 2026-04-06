@@ -1,19 +1,6 @@
 import { cn } from "@pinpoint/shad-ui/lib/utils";
-import {
-  createContext,
-  forwardRef,
-  useCallback,
-  useContext,
-  useId,
-  useMemo,
-  useReducer,
-  useState,
-} from "react";
-import {
-  Accept,
-  FileRejection,
-  useDropzone as rootUseDropzone,
-} from "react-dropzone";
+import { createContext, forwardRef, useCallback, useContext, useId, useMemo, useReducer, useState, } from "react";
+import { Accept, FileRejection, useDropzone as rootUseDropzone, } from "react-dropzone";
 import { Button } from "@pinpoint/shad-ui/components/button";
 
 type DropzoneButtonProps = React.ComponentProps<typeof Button>;
@@ -289,6 +276,7 @@ const useDropzone = <TUploadRes, TUploadError = string>(
     async (id: string) => {
       await pOnRemoveFile?.(id);
       dispatch({ type: "remove", id });
+      setRootError(undefined);
     },
     [pOnRemoveFile],
   );
@@ -642,7 +630,7 @@ const DropzoneMessage = forwardRef<HTMLParagraphElement, DropzoneMessageProps>(
         id={context.rootMessageId}
         {...rest}
         className={cn(
-          "h-5 text-[0.8rem] font-medium text-destructive",
+          "text-[0.8rem] font-medium text-destructive",
           rest.className,
         )}
       >
