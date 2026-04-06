@@ -12,6 +12,7 @@ import {
 } from "@pinpoint/shad-ui/components/dropzone";
 import { CloudUploadIcon, Trash2Icon } from "lucide-react";
 import Image from "next/image";
+import { useRef } from "react";
 
 type MultiImagesProps = {
   value: File[]; // form field value
@@ -19,11 +20,13 @@ type MultiImagesProps = {
 };
 
 export function MultiImages({ value, onChange }: MultiImagesProps) {
+  const valueRef = useRef<File[]>(value);
+  valueRef.current = value;
+
   const dropzone = useDropzone({
     onDropFile: async (file: File) => {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      const newFiles = [...value, file];
-      onChange(newFiles); // update form
+      onChange([...valueRef.current, file]);
       return {
         status: "success",
         result: URL.createObjectURL(file),
