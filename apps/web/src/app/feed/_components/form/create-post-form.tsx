@@ -1,9 +1,5 @@
 "use client";
-import { Label } from "@pinpoint/shad-ui/components/label";
-import { Input } from "@pinpoint/shad-ui/components/input";
-import { Textarea } from "@pinpoint/shad-ui/components/textarea";
-import { useForm } from "@tanstack/react-form-nextjs";
-import { FileEntry, MultiImages } from "./image-upload";
+import { uiCreatePostFormSchema } from "@pinpoint/contracts";
 import { Button } from "@pinpoint/shad-ui/components/button";
 import { cn } from "@pinpoint/shad-ui/lib/utils";
 import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
@@ -14,13 +10,46 @@ import CaptionField from "./fields/caption-field";
 import ImagesField from "./fields/images-field";
 import TitleField from "./fields/title-field";
 
-const autoResizeTextarea = (element: HTMLTextAreaElement) => {
-  element.style.height = "auto";
-  element.style.height = `${element.scrollHeight}px`;
-};
+export type FormInputValues = z.input<typeof uiCreatePostFormSchema>;
+export const { fieldContext, formContext, useFieldContext } = createFormHookContexts();
+export const { useAppForm } = createFormHook({
+  fieldContext,
+  formContext,
+  fieldComponents: {
+    TitleField,
+    CaptionField,
+    ImagesField,
+  },
+  formComponents: {},
+});
 
 export default function CreatePostForm() {
-  const form = useForm({ defaultValues: { title: "", caption: "", files: [] as FileEntry[] }, onSubmit: (values) => console.log(values.value) });
+  const queryClient = useQueryClient();
+  const createPost = useMutation(
+    webClientORPC.post.createPost.mutationOptions({
+      // TODO invalidate?
+      // onSuccess: async (data) => {
+      //   await queryClient.invalidateQueries({
+      //     queryKey: webClientORPC.post.getPosts.queryOptions({ input: { authorId: userId } }).queryKey,
+      //   });
+      // },
+    })
+  );
+
+  const form = useAppForm({
+    defaultValues: {
+      title: "",
+      caption: "",
+      images: [],
+    } as FormInputValues,
+    validators: {
+      onChange: uiCreatePostFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      await createPost.mutateAsync(value);
+    },
+  });
+
   return (
     <form
       onSubmit={(e) => {
@@ -33,6 +62,7 @@ export default function CreatePostForm() {
       <form.AppField name="title">{(field) => <field.TitleField />}</form.AppField>
       <form.AppField name="caption">{(field) => <field.CaptionField />}</form.AppField>
       <form.AppField name="images">{(field) => <field.ImagesField />}</form.AppField>
+
       <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
         {([canSubmit, isSubmitting]) => (
           <Button type="submit" disabled={!canSubmit} className={cn("cursor-pointer", !canSubmit && "cursor-not-allowed")}>
