@@ -46,7 +46,7 @@ export const uploadToR2 = async (postId: string, file: File, index: number) => {
 
 export const postRouter = {
   // TODO convert this to protectedProcedure
-  createPost: publicProcedure.post.createPost.handler(async ({ input, context, errors: { UNPROCESSABLE_CONTENT, INTERNAL_SERVER_ERROR } }) => {
+  createPost: publicProcedure.posts.createPost.handler(async ({ input, context, errors: { UNPROCESSABLE_CONTENT, INTERNAL_SERVER_ERROR } }) => {
     const id = uuidv7();
 
     // TODO: set up user validation
@@ -146,7 +146,7 @@ export const postRouter = {
     return { _id: id };
   }),
 
-  deletePost: protectedProcedure.post.deletePost.handler(
+  deletePost: protectedProcedure.posts.deletePost.handler(
     async ({ input: postId, context, errors: { NOT_FOUND, FORBIDDEN, INTERNAL_SERVER_ERROR } }) => {
       const post = await PostService.findById(postId).select({ _id: 1, authorId: 1 }).lean();
 
@@ -180,7 +180,7 @@ export const postRouter = {
     }
   ),
 
-  editPost: protectedProcedure.post.editPost.handler(
+  editPost: protectedProcedure.posts.editPost.handler(
     async ({ input, context, errors: { INTERNAL_SERVER_ERROR, NOT_FOUND, FORBIDDEN, UNPROCESSABLE_CONTENT } }) => {
       const post = await PostService.findById(input._id).select({ _id: 1, authorId: 1 }).lean();
 
@@ -241,11 +241,11 @@ export const postRouter = {
     }
   ),
 
-  getPosts: protectedProcedure.post.getPosts.handler(
+  getPosts: protectedProcedure.posts.getPosts.handler(
     async ({ input }) => await PostService.find({ authorId: input }).sort({ createdAt: -1 }).lean()
   ),
 
-  getPostById: protectedProcedure.post.getPostById.handler(async ({ input: postId, errors: { NOT_FOUND } }) => {
+  getPostById: protectedProcedure.posts.getPostById.handler(async ({ input: postId, errors: { NOT_FOUND } }) => {
     const post = await PostService.findById(postId).lean();
 
     if (!post) {

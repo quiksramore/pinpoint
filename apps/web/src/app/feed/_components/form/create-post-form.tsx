@@ -26,7 +26,7 @@ export const { useAppForm } = createFormHook({
 export default function CreatePostForm() {
   const queryClient = useQueryClient();
   const createPost = useMutation(
-    webClientORPC.post.createPost.mutationOptions({
+    webClientORPC.posts.createPost.mutationOptions({
       // TODO invalidate?
       // onSuccess: async (data) => {
       //   await queryClient.invalidateQueries({
