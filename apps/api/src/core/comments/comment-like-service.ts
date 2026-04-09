@@ -8,7 +8,7 @@ const CommentLikeSchema = commentLikeSchema;
 const commentLikeSchemaMongoose = toMongooseSchema(
   CommentLikeSchema.mongoose({
     schemaOptions: {
-      collection: "comments likes",
+      collection: "comments_likes",
       versionKey: false,
     },
   })
@@ -17,7 +17,7 @@ const commentLikeSchemaMongoose = toMongooseSchema(
 export interface ICommentLikeSchemaMongoose extends z.infer<typeof CommentLikeSchema> {}
 
 export const CommentLikeService = databaseConnection.model<ICommentLikeSchemaMongoose>(
-  "comment likes",
+  "comment_likes",
   commentLikeSchemaMongoose,
-  "comment likes"
+  "comment_likes"
 );
