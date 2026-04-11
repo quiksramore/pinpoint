@@ -1,7 +1,7 @@
 import { MAX_IMAGES } from "@pinpoint/contracts";
 import {
-  Dropzone,
   DropZoneArea,
+  Dropzone,
   DropzoneDescription,
   DropzoneFileList,
   DropzoneFileListItem,
@@ -16,19 +16,30 @@ import { CloudUploadIcon, Trash2Icon } from "lucide-react";
 import Image from "next/image";
 import { type FormInputValues, useFieldContext } from "../create-post-form";
 
-export default function ImagesField() {
+const MAX_IMAGE_SIZE_MB = 5;
+const BYTES_PER_KIB = 1024;
+const BYTES_PER_MB = BYTES_PER_KIB * BYTES_PER_KIB;
+
+type ImagesFieldProps = {
+  serverError?: string | null;
+  onClearServerError?: () => void;
+};
+
+export default function ImagesField({ serverError, onClearServerError }: ImagesFieldProps) {
   const field = useFieldContext<FormInputValues["images"]>();
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+  const errors = [...field.state.meta.errors, ...(serverError ? [{ message: serverError }] : [])];
 
   const dropzone = useDropzone({
     onDropFile: (file: File) => {
-      if (field.state.value.length >= 5) {
+      if (field.state.value.length >= MAX_IMAGES) {
         return Promise.resolve({
           status: "error",
-          error: "Maximum of 5 images allowed",
+          error: `Maximum of ${MAX_IMAGES} images allowed`,
         });
       }
 
+      onClearServerError?.();
       field.pushValue(file);
 
       return Promise.resolve({
@@ -40,7 +51,7 @@ export default function ImagesField() {
       accept: {
         "image/*": [".png", ".jpg", ".jpeg", ".heic"],
       },
-      maxSize: 5 * 1024 * 1024,
+      maxSize: MAX_IMAGE_SIZE_MB * BYTES_PER_MB,
       maxFiles: MAX_IMAGES,
     },
   });
@@ -68,7 +79,7 @@ export default function ImagesField() {
 
             <div className="mt-1">
               <DropzoneMessage />
-              {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              {(isInvalid || serverError) && <FieldError errors={errors} />}
             </div>
           </div>
 
@@ -90,12 +101,13 @@ export default function ImagesField() {
                 <div className="mb-2 ml-2 flex items-center justify-between">
                   <div className="min-w-0">
                     <p className="truncate text-sm">{fileStatus.fileName}</p>
-                    <p className="text-foreground/50 text-xs">{(fileStatus.file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                    <p className="text-foreground/50 text-xs">{(fileStatus.file.size / BYTES_PER_MB).toFixed(2)} MB</p>
                   </div>
                   <DropzoneRemoveFile
                     variant="ghost"
                     className="shrink-0 cursor-pointer hover:outline"
                     onClick={() => {
+                      onClearServerError?.();
                       dropzone.onRemoveFile(fileStatus.id).then(undefined, () => undefined);
                       field.handleChange(field.state.value.filter((_, i) => i !== index));
                     }}
