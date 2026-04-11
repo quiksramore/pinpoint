@@ -157,7 +157,6 @@ export const postContract = {
       method: "GET",
       description: "Get all posts (for MVP only)",
     })
-    .input(z.void())
     .output(z.array(postSchema))
     .errors({
       INTERNAL_SERVER_ERROR: {
