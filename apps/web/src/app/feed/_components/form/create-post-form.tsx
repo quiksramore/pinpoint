@@ -3,12 +3,33 @@ import { uiCreatePostFormSchema } from "@pinpoint/contracts";
 import { Button } from "@pinpoint/shad-ui/components/button";
 import { cn } from "@pinpoint/shad-ui/lib/utils";
 import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import type { z } from "zod";
 import { webClientORPC } from "../../../../lib/orpc-web-client";
 import CaptionField from "./fields/caption-field";
 import ImagesField from "./fields/images-field";
 import TitleField from "./fields/title-field";
+
+const getErrorMessage = (error: unknown): string => {
+  if (error && typeof error === "object") {
+    const errorRecord = error as Record<string, unknown>;
+    const data = errorRecord.data;
+
+    if (data && typeof data === "object") {
+      const dataMessage = (data as Record<string, unknown>).message;
+      if (typeof dataMessage === "string" && dataMessage.length > 0) {
+        return dataMessage;
+      }
+    }
+
+    if (typeof errorRecord.message === "string" && errorRecord.message.length > 0) {
+      return errorRecord.message;
+    }
+  }
+
+  return "Failed to create post. Please try again.";
+};
 
 export type FormInputValues = z.input<typeof uiCreatePostFormSchema>;
 export const { fieldContext, formContext, useFieldContext } = createFormHookContexts();
@@ -24,7 +45,7 @@ export const { useAppForm } = createFormHook({
 });
 
 export default function CreatePostForm() {
-  const queryClient = useQueryClient();
+  const [imagesServerError, setImagesServerError] = useState<string | null>(null);
   const createPost = useMutation(
     webClientORPC.posts.createPost.mutationOptions({
       // TODO invalidate?
@@ -46,7 +67,13 @@ export default function CreatePostForm() {
       onChange: uiCreatePostFormSchema,
     },
     onSubmit: async ({ value }) => {
-      await createPost.mutateAsync(value);
+      setImagesServerError(null);
+
+      try {
+        await createPost.mutateAsync(value);
+      } catch (error) {
+        setImagesServerError(getErrorMessage(error));
+      }
     },
   });
 
@@ -61,7 +88,9 @@ export default function CreatePostForm() {
     >
       <form.AppField name="title">{(field) => <field.TitleField />}</form.AppField>
       <form.AppField name="caption">{(field) => <field.CaptionField />}</form.AppField>
-      <form.AppField name="images">{(field) => <field.ImagesField />}</form.AppField>
+      <form.AppField name="images">
+        {(field) => <field.ImagesField serverError={imagesServerError} onClearServerError={() => setImagesServerError(null)} />}
+      </form.AppField>
 
       <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
         {([canSubmit, isSubmitting]) => (
