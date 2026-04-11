@@ -8,9 +8,9 @@ import heicConvert from "heic-convert";
 import { v7 as uuidv7 } from "uuid";
 import type { z } from "zod";
 import { protectedProcedure, publicProcedure } from "../../libs/orpc-procedures";
+import { ProfileService } from "../profile/profile-service";
 import { getStrongestCluster } from "./location-util";
 import { PostService } from "./post-service";
-import {ProfileService} from "../profile/profile-service";
 
 export const uploadToR2 = async (postId: string, file: File, index: number) => {
   const fileBuffer = await file.arrayBuffer();
@@ -264,4 +264,6 @@ export const postRouter = {
 
     return post;
   }),
+  // TODO: endpoint just for MVP, REMOVE IN PRODUCTION
+  getAllPosts: protectedProcedure.posts.getAllPosts.handler(async () => await PostService.find({}).sort({ createdAt: -1 }).lean()),
 };

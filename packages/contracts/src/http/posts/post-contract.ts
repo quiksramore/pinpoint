@@ -1,8 +1,8 @@
 import { oc } from "@orpc/contract";
 import { z } from "zod";
 import { profileSchema } from "../profile/profile-schema";
-import { postSchema, uiCreatePostFormSchema } from "./post-schema";
 import { voteSchema } from "../vote/vote-schema";
+import { postSchema, uiCreatePostFormSchema } from "./post-schema";
 
 export const postContract = {
   createPost: oc
@@ -151,6 +151,22 @@ export const postContract = {
         }),
       },
     }),
+  // TODO: DELETE IN PRODUCTION, ENDPOINT JUST FOR MVP
+  getAllPosts: oc
+    .route({
+      method: "GET",
+      description: "Get all posts (for MVP only)",
+    })
+    .input(z.void())
+    .output(z.array(postSchema))
+    .errors({
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
   addVote: oc
     .route({
       method: "POST",
