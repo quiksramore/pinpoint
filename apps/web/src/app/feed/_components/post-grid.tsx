@@ -5,24 +5,14 @@ import { webClientORPC } from "../../../lib/orpc-web-client";
 
 export default function PostGrid() {
   const { data, isLoading, error } = useQuery(
-    webClientORPC.posts.getPosts.queryOptions({
-      input: {
-        // TODO authorId should be optional and handled server-side
-        authorId: "123",
-      },
+    webClientORPC.posts.getAllPosts.queryOptions({
+      input: {},
     })
   );
 
   return (
     <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-      <p>HELLO</p>
-      <p>HELLO</p>
-      <p>HELLO</p>
-      <p>HELLO</p>
-      <p>HELLO</p>
-      <p>HELLO</p>
-      <p>HELLO</p>
-      <p>HELLO</p>
+      <p>{data?.[0]?.title}</p>
     </div>
   );
 }

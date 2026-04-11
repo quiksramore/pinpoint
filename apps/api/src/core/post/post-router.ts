@@ -265,5 +265,5 @@ export const postRouter = {
     return post;
   }),
   // TODO: endpoint just for MVP, REMOVE IN PRODUCTION
-  getAllPosts: protectedProcedure.posts.getAllPosts.handler(async () => await PostService.find({}).sort({ createdAt: -1 }).lean()),
+  getAllPosts: publicProcedure.posts.getAllPosts.handler(async () => await PostService.find({}).sort({ createdAt: -1 }).lean()),
 };
