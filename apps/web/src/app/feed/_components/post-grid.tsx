@@ -15,6 +15,7 @@ export default function PostGrid() {
     <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
       {/* TODO: replace with skeleton posts */}
       {isLoading && <p>Loading...</p>}
+      {error && <p>Error loading posts: {error.message}</p>}
       {data?.map((post) => (
         <FeedPost key={post._id} data={post} />
       ))}
