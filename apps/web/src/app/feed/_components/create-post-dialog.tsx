@@ -9,7 +9,7 @@ export default function CreatePostDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="fixed right-8 bottom-8 size-15 cursor-pointer rounded-full p-0">
+        <Button className="fixed right-8 bottom-8 z-10 size-15 cursor-pointer rounded-full p-0">
           <Plus />
         </Button>
       </DialogTrigger>
