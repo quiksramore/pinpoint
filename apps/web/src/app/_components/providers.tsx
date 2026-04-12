@@ -2,6 +2,7 @@
 
 import { isServer, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NuqsAdapter } from "nuqs/adapters/next";
+import AuthLayer from "./auth-layer";
 
 const STALE_TIME = 60 * 1000;
 function makeQueryClient() {
@@ -27,6 +28,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthLayer />
       <NuqsAdapter>{children}</NuqsAdapter>
     </QueryClientProvider>
   );
