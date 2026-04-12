@@ -324,7 +324,6 @@ export const postRouter = {
     }
   ),
 
-  // TODO: reset to protectedProcedure
   getUserVote: protectedProcedure.posts.getUserVote.handler(async ({ input: postId, context, errors: { NOT_FOUND } }) => {
     const post = await PostService.findById(postId).lean();
 
@@ -335,7 +334,6 @@ export const postRouter = {
         },
       });
     }
-    // TODO: reinstate profile context id, using dummy id for now to test functionality
     const profile = await ProfileService.findById({ _id: context.user.id });
 
     if (!profile) {
@@ -359,7 +357,6 @@ export const postRouter = {
     return vote;
   }),
 
-  // TODO: reset to protectedProcedure
   deleteVote: protectedProcedure.posts.deleteVote.handler(
     async ({ input: postId, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, FORBIDDEN } }) => {
       const postDoc = await PostService.findById({ _id: postId });
@@ -372,7 +369,6 @@ export const postRouter = {
         });
       }
 
-      // TODO: reinstate profile context id, using dummy id for now to test functionality
       if (postDoc.authorId !== context.user.id) {
         throw FORBIDDEN({
           data: {
