@@ -1,7 +1,7 @@
+import { profileSchema } from "@pinpoint/contracts";
 import { toMongooseSchema } from "mongoose-zod";
-import { profileSchema } from "node_modules/@pinpoint/contracts/src/http/profile/profile-schema";
-import { databaseConnection } from "src/database/database";
 import type { z } from "zod";
+import { databaseConnection } from "../../database/database";
 
 const ProfileSchema = profileSchema;
 
