@@ -10,6 +10,7 @@ type VoteValue = 1 | -1;
 export default function UpvoteDownvote({ upvotes, downvotes, postId }: { upvotes?: number; downvotes?: number; postId: string }) {
   const [vote, setVote] = useState<Vote>(null);
   const [score, setScore] = useState(0);
+  const userId = "123"; // TODO: get from auth context
 
   const { data: voteData } = useQuery(
     webClientORPC.posts.getUserVote.queryOptions({
@@ -20,7 +21,7 @@ export default function UpvoteDownvote({ upvotes, downvotes, postId }: { upvotes
   const voteMutation = useMutation({
     mutationFn: (voteValue: VoteValue) =>
       webClientORPC.posts.addVote.call({
-        authorId: "123",
+        authorId: userId,
         postId,
         voteValue,
       }),
