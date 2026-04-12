@@ -5,7 +5,7 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { databaseConnection } from "../database/database";
 import { env } from "../env";
 
-const database = databaseConnection.getClient().db(env.DATABASE_NAME);
+const database = databaseConnection.getClient().db();
 
 const basePath = env.ENV === "development" ? "/api/auth" : "/auth";
 
