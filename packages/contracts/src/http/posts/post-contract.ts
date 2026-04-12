@@ -199,7 +199,7 @@ export const postContract = {
           message: z.string(),
         }),
       },
-      UNAUTHORIZED: {
+      UNPROCESSABLE_CONTENT: {
         data: z.object({
           message: z.string(),
         }),
