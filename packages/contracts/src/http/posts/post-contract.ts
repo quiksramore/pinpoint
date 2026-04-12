@@ -194,11 +194,6 @@ export const postContract = {
           message: z.string(),
         }),
       },
-      FORBIDDEN: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
       UNPROCESSABLE_CONTENT: {
         data: z.object({
           message: z.string(),
@@ -233,11 +228,6 @@ export const postContract = {
         }),
       },
       FORBIDDEN: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
         data: z.object({
           message: z.string(),
         }),
