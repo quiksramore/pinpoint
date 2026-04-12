@@ -324,6 +324,40 @@ export const postRouter = {
     }
   ),
 
+  getUserVote: protectedProcedure.posts.getUserVote.handler(async ({ input: postId, context, errors: { NOT_FOUND } }) => {
+    const post = await PostService.findById(postId).lean();
+
+    if (!post) {
+      throw NOT_FOUND({
+        data: {
+          message: `Post with id ${postId} not found`,
+        },
+      });
+    }
+
+    const profile = await ProfileService.findById({ _id: context.user.id });
+
+    if (!profile) {
+      throw NOT_FOUND({
+        data: {
+          message: `User not found with id: ${context.user.id}`,
+        },
+      });
+    }
+
+    const vote = await VoteService.findOne({ authorId: profile, postId: post });
+
+    if (!vote) {
+      throw NOT_FOUND({
+        data: {
+          message: `Vote not found with authorId: ${profile} and postId: ${post}`,
+        },
+      });
+    }
+
+    return vote;
+  }),
+
   deleteVote: protectedProcedure.posts.deleteVote.handler(
     async ({ input: postId, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, FORBIDDEN } }) => {
       const postDoc = await PostService.findById({ _id: postId });
