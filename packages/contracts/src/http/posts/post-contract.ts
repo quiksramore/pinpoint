@@ -233,4 +233,18 @@ export const postContract = {
         }),
       },
     }),
+  getUserVote: oc
+    .route({
+      method: "GET",
+      description: "Get a post by ID",
+    })
+    .input(postSchema.shape._id)
+    .output(voteSchema)
+    .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
 };
