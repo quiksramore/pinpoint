@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { cn } from "@pinpoint/shad-ui/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -62,4 +63,8 @@ export default function UpvoteDownvote({ upvotes, downvotes, postId }: { upvotes
       <ChevronDown onClick={handleDownvote} className={cn("cursor-pointer", vote === -1 ? "text-red-500" : "")} />
     </div>
   );
+=======
+export default function UpvoteDownvote() {
+  return ();
+>>>>>>> c883c4f (feat: post-skeleton)
 }
