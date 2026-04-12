@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@pinpoint/shad-ui/components/button";
-import { useRouter } from "next/dist/client/components/navigation";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const router = useRouter();

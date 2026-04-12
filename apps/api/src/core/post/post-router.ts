@@ -8,6 +8,7 @@ import heicConvert from "heic-convert";
 import { v7 as uuidv7 } from "uuid";
 import type { z } from "zod";
 import { protectedProcedure, publicProcedure } from "../../libs/orpc-procedures";
+import { ProfileService } from "../profile/profile-service";
 import { getStrongestCluster } from "./location-util";
 import { PostService } from "./post-service";
 
@@ -48,8 +49,13 @@ export const postRouter = {
   // TODO convert this to protectedProcedure
   createPost: publicProcedure.posts.createPost.handler(async ({ input, context, errors: { UNPROCESSABLE_CONTENT, INTERNAL_SERVER_ERROR } }) => {
     const id = uuidv7();
+    const profileDocument = await ProfileService.findById({ _id: context.user.id });
 
-    // TODO: set up user validation
+    if (!profileDocument) {
+      throw NOT_FOUND({
+        data: { message: `User not found with id: ${context.user.id}` },
+      });
+    }
 
     const synthesisedImages = await Promise.all(
       input.images.map(async (file, index) => {
@@ -258,4 +264,6 @@ export const postRouter = {
 
     return post;
   }),
+  // TODO: endpoint just for MVP, REMOVE IN PRODUCTION
+  getAllPosts: publicProcedure.posts.getAllPosts.handler(async () => await PostService.find({}).sort({ createdAt: -1 }).lean()),
 };

@@ -1,6 +1,7 @@
 import { oc } from "@orpc/contract";
 import { z } from "zod";
 import { profileSchema } from "../profile/profile-schema";
+import { voteSchema } from "../vote/vote-schema";
 import { postSchema, uiCreatePostFormSchema } from "./post-schema";
 
 export const postContract = {
@@ -27,6 +28,11 @@ export const postContract = {
         }),
       },
       INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      NOT_FOUND: {
         data: z.object({
           message: z.string(),
         }),
@@ -115,6 +121,11 @@ export const postContract = {
     .input(profileSchema.shape._id)
     .output(z.array(postSchema))
     .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       INTERNAL_SERVER_ERROR: {
         data: z.object({
           message: z.string(),
@@ -135,6 +146,98 @@ export const postContract = {
         }),
       },
       INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+  // TODO: DELETE IN PRODUCTION, ENDPOINT JUST FOR MVP
+  getAllPosts: oc
+    .route({
+      method: "GET",
+      description: "Get all posts (for MVP only)",
+    })
+    .output(z.array(postSchema))
+    .errors({
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
+  addVote: oc
+    .route({
+      method: "POST",
+      description: "Add a vote",
+    })
+    .input(
+      voteSchema.pick({
+        postId: true,
+        authorId: true,
+        voteValue: true,
+      })
+    )
+    .output(
+      z.object({
+        _id: voteSchema.shape._id,
+      })
+    )
+    .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      UNAUTHORIZED: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+  deleteVote: oc
+    .route({
+      method: "DELETE",
+      description: "Delete a vote",
+    })
+    .input(
+      z.object({
+        _id: voteSchema.shape._id,
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+        error: z.string().optional(),
+      })
+    )
+    .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      UNAUTHORIZED: {
         data: z.object({
           message: z.string(),
         }),
