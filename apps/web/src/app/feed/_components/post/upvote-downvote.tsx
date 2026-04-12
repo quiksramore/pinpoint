@@ -4,7 +4,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { webClientORPC } from "../../../../lib/orpc-web-client";
 
-type Vote = 1 | -1 | null;
+type Vote = "up" | "down" | null;
 
 export default function UpvoteDownvote({ upvotes, downvotes, postId }: { upvotes?: number; downvotes?: number; postId: string }) {
   const [vote, setVote] = useState<Vote>(null);
@@ -24,42 +24,42 @@ export default function UpvoteDownvote({ upvotes, downvotes, postId }: { upvotes
   }, [upvotes, downvotes]);
 
   const handleUpvote = () => {
-    if (vote === 1) {
+    if (vote === "up") {
       setScore((s) => s - 1); // already upvoted
       setVote(null);
       return;
     }
 
-    if (vote === -1) {
+    if (vote === "down") {
       setScore((s) => s + 2); // remove downvote + add upvote
     } else {
       setScore((s) => s + 1);
     }
 
-    setVote(1);
+    setVote("up");
   };
 
   const handleDownvote = () => {
-    if (vote === -1) {
+    if (vote === "down") {
       setScore((s) => s + 1); // already downvoted
       setVote(null);
       return;
     }
 
-    if (vote === 1) {
+    if (vote === "up") {
       setScore((s) => s - 2); // remove upvote + add downvote
     } else {
       setScore((s) => s - 1);
     }
 
-    setVote(-1);
+    setVote("down");
   };
 
   return (
     <div className="flex items-center gap-2">
-      <ChevronUp onClick={handleUpvote} className={cn("cursor-pointer", vote === 1 ? "text-green-500" : "")} />
+      <ChevronUp onClick={handleUpvote} className={cn("cursor-pointer", vote === "up" ? "text-green-500" : "")} />
       {score}
-      <ChevronDown onClick={handleDownvote} className={cn("cursor-pointer", vote === -1 ? "text-red-500" : "")} />
+      <ChevronDown onClick={handleDownvote} className={cn("cursor-pointer", vote === "down" ? "text-red-500" : "")} />
     </div>
   );
 }
