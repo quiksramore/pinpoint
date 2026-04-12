@@ -194,12 +194,7 @@ export const postContract = {
           message: z.string(),
         }),
       },
-      FORBIDDEN: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNAUTHORIZED: {
+      UNPROCESSABLE_CONTENT: {
         data: z.object({
           message: z.string(),
         }),
@@ -237,7 +232,16 @@ export const postContract = {
           message: z.string(),
         }),
       },
-      UNAUTHORIZED: {
+    }),
+  getUserVote: oc
+    .route({
+      method: "GET",
+      description: "Get a post by ID",
+    })
+    .input(postSchema.shape._id)
+    .output(voteSchema)
+    .errors({
+      NOT_FOUND: {
         data: z.object({
           message: z.string(),
         }),

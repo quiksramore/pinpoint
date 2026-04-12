@@ -1,6 +1,6 @@
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { pointSchema, postSchema } from "@pinpoint/contracts";
+import { pointSchema, postSchema, type voteSchema } from "@pinpoint/contracts";
 import { S3Client, write } from "bun";
 import { exiftool } from "exiftool-vendored";
 import { fileTypeFromBuffer } from "file-type";
@@ -11,6 +11,7 @@ import { protectedProcedure, publicProcedure } from "../../libs/orpc-procedures"
 import { ProfileService } from "../profile/profile-service";
 import { getStrongestCluster } from "./location-util";
 import { PostService } from "./post-service";
+import { VoteService } from "./vote-service";
 
 export const uploadToR2 = async (postId: string, file: File, index: number) => {
   const fileBuffer = await file.arrayBuffer();
@@ -47,110 +48,112 @@ export const uploadToR2 = async (postId: string, file: File, index: number) => {
 
 export const postRouter = {
   // TODO convert this to protectedProcedure
-  createPost: publicProcedure.posts.createPost.handler(async ({ input, context, errors: { UNPROCESSABLE_CONTENT, INTERNAL_SERVER_ERROR } }) => {
-    const id = uuidv7();
-    const profileDocument = await ProfileService.findById({ _id: context.user.id });
+  createPost: publicProcedure.posts.createPost.handler(
+    async ({ input, context, errors: { UNPROCESSABLE_CONTENT, INTERNAL_SERVER_ERROR, NOT_FOUND } }) => {
+      const id = uuidv7();
 
-    if (!profileDocument) {
-      throw NOT_FOUND({
-        data: { message: `User not found with id: ${context.user.id}` },
-      });
-    }
+      // const profileDocument = await ProfileService.findById({ _id: context.user.id });
+      // if (!profileDocument) {
+      //   throw NOT_FOUND({
+      //     data: { message: `User not found with id: ${context.user.id}` },
+      //   });
+      // }
 
-    const synthesisedImages = await Promise.all(
-      input.images.map(async (file, index) => {
-        const originalBuffer = await file.arrayBuffer();
+      const synthesisedImages = await Promise.all(
+        input.images.map(async (file, index) => {
+          const originalBuffer = await file.arrayBuffer();
 
-        const tempDir = tmpdir();
-        const inputPath = join(tempDir, `${uuidv7()}-${file.name}`);
-        await Bun.write(inputPath, originalBuffer);
+          const tempDir = tmpdir();
+          const inputPath = join(tempDir, `${uuidv7()}-${file.name}`);
+          await Bun.write(inputPath, originalBuffer);
 
-        try {
-          // Read EXIF from the original file before conversion
-          const exifTags = await exiftool.read(inputPath);
-          const latitude = exifTags.GPSLatitude;
-          const longitude = exifTags.GPSLongitude;
+          try {
+            // Read EXIF from the original file before conversion
+            const exifTags = await exiftool.read(inputPath);
+            const latitude = exifTags.GPSLatitude;
+            const longitude = exifTags.GPSLongitude;
 
-          if (latitude === undefined || longitude === undefined) {
-            throw UNPROCESSABLE_CONTENT({
-              data: {
-                message: `Image ${file.name} does not contain GPS coordinates.`,
-              },
+            if (latitude === undefined || longitude === undefined) {
+              throw UNPROCESSABLE_CONTENT({
+                data: {
+                  message: `Image ${file.name} does not contain GPS coordinates.`,
+                },
+              });
+            }
+
+            const location: z.infer<typeof pointSchema> = pointSchema.parse({
+              latitude,
+              longitude,
             });
+
+            // upload image to R2
+            const suburl = await uploadToR2(id, file, index);
+
+            return {
+              suburl,
+              location,
+            };
+          } finally {
+            Bun.file(inputPath).delete();
           }
+        })
+      );
 
-          const location: z.infer<typeof pointSchema> = pointSchema.parse({
-            latitude,
-            longitude,
-          });
+      const { center: location, finalCluster } = getStrongestCluster(synthesisedImages.map((image) => image.location));
 
-          // upload image to R2
-          const suburl = await uploadToR2(id, file, index);
+      if (finalCluster.length !== synthesisedImages.length) {
+        throw UNPROCESSABLE_CONTENT({
+          data: {
+            message: "The images provided are too geographically spread apart. Please provide images that are closer together.",
+          },
+        });
+      }
 
-          return {
-            suburl,
-            location,
-          };
-        } finally {
-          Bun.file(inputPath).delete();
-        }
-      })
-    );
-
-    const { center: location, finalCluster } = getStrongestCluster(synthesisedImages.map((image) => image.location));
-
-    if (finalCluster.length !== synthesisedImages.length) {
-      throw UNPROCESSABLE_CONTENT({
-        data: {
-          message: "The images provided are too geographically spread apart. Please provide images that are closer together.",
+      const postDoc: z.infer<typeof postSchema> = {
+        _id: id,
+        // authorId: context.user.id,
+        authorId: id,
+        authorSnapshot: {
+          // name: context.user.name,
+          name: "foofoo",
+          // image: context.user.image ?? "",
+          image: "www.example.com",
         },
-      });
-    }
-
-    const postDoc: z.infer<typeof postSchema> = {
-      _id: id,
-      // authorId: context.user.id,
-      authorId: id,
-      authorSnapshot: {
-        // name: context.user.name,
-        name: "foofoo",
-        // image: context.user.image ?? "",
-        image: "www.example.com",
-      },
-      title: input.title,
-      caption: input.caption,
-      images: synthesisedImages,
-      location,
-      metrics: {
-        upvotes: 0,
-        downvotes: 0,
-        comments: 0,
-      },
-      createdAt: new Date(),
-    };
-
-    const tryParse = postSchema.safeParse(postDoc);
-
-    if (!tryParse.success) {
-      throw UNPROCESSABLE_CONTENT({
-        data: {
-          message: `Invalid Input: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
+        title: input.title,
+        caption: input.caption,
+        images: synthesisedImages,
+        location,
+        metrics: {
+          upvotes: 0,
+          downvotes: 0,
+          comments: 0,
         },
-      });
-    }
+        createdAt: new Date(),
+      };
 
-    try {
-      await PostService.insertOne(postDoc);
-    } catch (error) {
-      throw INTERNAL_SERVER_ERROR({
-        data: {
-          message: `Failed to insert document by _id ${id}. ${error}`,
-        },
-      });
-    }
+      const tryParse = postSchema.safeParse(postDoc);
 
-    return { _id: id };
-  }),
+      if (!tryParse.success) {
+        throw UNPROCESSABLE_CONTENT({
+          data: {
+            message: `Invalid Input: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
+          },
+        });
+      }
+
+      try {
+        await PostService.insertOne(postDoc);
+      } catch (error) {
+        throw INTERNAL_SERVER_ERROR({
+          data: {
+            message: `Failed to insert document by _id ${id}. ${error}`,
+          },
+        });
+      }
+
+      return { _id: id };
+    }
+  ),
 
   deletePost: protectedProcedure.posts.deletePost.handler(
     async ({ input: postId, context, errors: { NOT_FOUND, FORBIDDEN, INTERNAL_SERVER_ERROR } }) => {
@@ -266,4 +269,126 @@ export const postRouter = {
   }),
   // TODO: endpoint just for MVP, REMOVE IN PRODUCTION
   getAllPosts: publicProcedure.posts.getAllPosts.handler(async () => await PostService.find({}).sort({ createdAt: -1 }).lean()),
+
+  addVote: protectedProcedure.posts.addVote.handler(
+    async ({ input, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, UNPROCESSABLE_CONTENT } }) => {
+      const profileDoc = await ProfileService.findById({ _id: context.user.id });
+
+      if (!profileDoc) {
+        throw NOT_FOUND({
+          data: { message: `User not found with id: ${context.user.id}` },
+        });
+      }
+
+      const post = await PostService.findById(input.postId).select({ _id: 1 }).lean();
+
+      if (!post) {
+        throw NOT_FOUND({
+          data: {
+            message: `Post with id ${input.postId} not found`,
+          },
+        });
+      }
+
+      const id = uuidv7();
+
+      const voteDoc: z.infer<typeof voteSchema> = {
+        _id: id,
+        postId: input.postId,
+        authorId: input.authorId,
+        voteValue: input.voteValue,
+        createdAt: new Date(),
+      };
+
+      const tryParse = postSchema.safeParse(voteDoc);
+
+      if (!tryParse.success) {
+        throw UNPROCESSABLE_CONTENT({
+          data: {
+            message: `Invalid Input: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
+          },
+        });
+      }
+
+      try {
+        await VoteService.insertOne(voteDoc);
+      } catch (error) {
+        throw INTERNAL_SERVER_ERROR({
+          data: {
+            message: `Failed to insert document by _id ${id}. ${error}`,
+          },
+        });
+      }
+
+      return { _id: id };
+    }
+  ),
+
+  getUserVote: protectedProcedure.posts.getUserVote.handler(async ({ input: postId, context, errors: { NOT_FOUND } }) => {
+    const post = await PostService.findById(postId).lean();
+
+    if (!post) {
+      throw NOT_FOUND({
+        data: {
+          message: `Post with id ${postId} not found`,
+        },
+      });
+    }
+
+    const profile = await ProfileService.findById({ _id: context.user.id });
+
+    if (!profile) {
+      throw NOT_FOUND({
+        data: {
+          message: `User not found with id: ${context.user.id}`,
+        },
+      });
+    }
+
+    const vote = await VoteService.findOne({ authorId: profile, postId: post });
+
+    if (!vote) {
+      throw NOT_FOUND({
+        data: {
+          message: `Vote not found with authorId: ${profile} and postId: ${post}`,
+        },
+      });
+    }
+
+    return vote;
+  }),
+
+  deleteVote: protectedProcedure.posts.deleteVote.handler(
+    async ({ input: postId, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, FORBIDDEN } }) => {
+      const postDoc = await PostService.findById({ _id: postId });
+
+      if (!postDoc) {
+        throw NOT_FOUND({
+          data: {
+            message: `Post with id ${postId} not found.`,
+          },
+        });
+      }
+
+      if (postDoc.authorId !== context.user.id) {
+        throw FORBIDDEN({
+          data: {
+            message: "Forbidden.",
+          },
+        });
+      }
+
+      try {
+        const deleteResult = await VoteService.deleteOne({ _id: postId });
+        if (deleteResult.deletedCount === 1) return { success: true };
+        return { success: false };
+      } catch (error) {
+        throw INTERNAL_SERVER_ERROR({
+          data: {
+            message: `DB failed to delete post with id ${postId}: ${error}`,
+          },
+        });
+      }
+    }
+  ),
 };
