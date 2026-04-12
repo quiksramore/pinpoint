@@ -6,12 +6,7 @@ export default function FeedPost({ data }: { data: z.infer<typeof postSchema> })
   return (
     <div className="flex flex-col items-center justify-center gap-5 bg-background-800 p-10">
       <p>{data.title}</p>
-<<<<<<< HEAD
       <div className="relative aspect-square w-full overflow-hidden border-5 border-background-700">
-=======
-      <div className="relative h-100 w-100 overflow-hidden border-5 border-background-700">
-        {/* TODO: Change SRC to R2 bucket URL */}
->>>>>>> c883c4f (feat: post-skeleton)
         <Image src="https://picsum.photos/seed/picsum/200/300" alt={data.title} fill className="object-cover" />
       </div>
       <div className="flex w-full justify-between">
@@ -22,10 +17,7 @@ export default function FeedPost({ data }: { data: z.infer<typeof postSchema> })
           </div>
           <span>{data.authorSnapshot?.name}</span>
         </div>
-<<<<<<< HEAD
         <UpvoteDownvote postId={data._id} upvotes={data.metrics.upvotes} downvotes={data.metrics.downvotes} />
-=======
->>>>>>> c883c4f (feat: post-skeleton)
       </div>
     </div>
   );
