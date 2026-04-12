@@ -3,6 +3,7 @@ import Image from "next/image";
 import type z from "zod";
 export default function FeedPost({ data }: { data: z.infer<typeof postSchema> }) {
   return (
+<<<<<<< HEAD
     <div className="flex flex-col items-center justify-center gap-5 bg-background-800 p-10">
       <p>{data.title}</p>
       <div className="relative h-100 w-100 overflow-hidden border-5 border-background-700">
@@ -18,6 +19,13 @@ export default function FeedPost({ data }: { data: z.infer<typeof postSchema> })
           <span>{data.authorSnapshot?.name}</span>
         </div>
       </div>
+=======
+    <div className="flex flex-col items-center justify-center bg-background-800 p-10">
+      <p>{data.title}</p>
+      <div className="relative h-100 w-100 overflow-hidden border-5 border-background-700">
+        <Image src="https://picsum.photos/seed/picsum/200/300" alt={data.title} fill className="object-cover" />
+      </div>
+>>>>>>> bad0097 (feat: skeleton feed-post)
     </div>
   );
 }
