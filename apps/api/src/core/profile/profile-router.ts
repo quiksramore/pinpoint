@@ -1,25 +1,22 @@
-import { profileSchema } from "node_modules/@pinpoint/contracts/src/http/profile/profile-schema";
-import { protectedProcedure, publicProcedure } from "src/libs/orpc-procedures";
+import { profileSchema } from "@pinpoint/contracts";
+import type { z } from "zod";
+import { protectedProcedure, publicProcedure } from "../../libs/orpc-procedures";
 import { ProfileService } from "./profile-service";
 
 export const profileRouter = {
   createProfile: protectedProcedure.profile.createProfile.handler(
-    async ({ input, context, errors: { UNPROCESSABLE_CONTENT, INTERNAL_SERVER_ERROR } }) => {
+    async ({ input, context, errors: { FORBIDDEN, UNPROCESSABLE_CONTENT, INTERNAL_SERVER_ERROR } }) => {
       const id = context.user.id;
 
-      const profilePayload = {
+      const profilePayload: z.input<typeof profileSchema> = {
         _id: id,
         username: input.username,
-        bio: input.bio ?? "",
-        location: input.location ?? "",
-        followers: 0,
-        following: 0,
-        postCount: 0,
+        bio: input.bio,
+        location: input.location,
         pins: {
           displayedPins: [],
           uniquePinCount: 0,
         },
-        maxDisplayPinCount: 2,
         createdAt: new Date(),
       };
 
