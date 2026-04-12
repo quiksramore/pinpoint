@@ -11,7 +11,6 @@ export const env = createEnv({
 
     // MongoDB connection string
     DATABASE_URL: z.string(),
-    // DATABASE_NAME: z.string(),
 
     // BetterAuth secret
     BETTER_AUTH_SECRET: z.string(),
