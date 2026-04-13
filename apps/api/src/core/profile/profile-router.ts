@@ -8,6 +8,15 @@ export const profileRouter = {
     async ({ input, context, errors: { FORBIDDEN, UNPROCESSABLE_CONTENT, INTERNAL_SERVER_ERROR } }) => {
       const id = context.user.id;
 
+      const existingProfile = await ProfileService.findById(id).lean();
+      if (existingProfile) {
+        throw FORBIDDEN({
+          data: {
+            message: `Profile with id ${id} already exists.`,
+          },
+        });
+      }
+
       const profilePayload: z.input<typeof profileSchema> = {
         _id: id,
         username: input.username,
@@ -25,7 +34,7 @@ export const profileRouter = {
       if (!tryParse.success) {
         throw UNPROCESSABLE_CONTENT({
           data: {
-            message: `Invalid Input: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
+            message: `Failed to confirm: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
           },
         });
       }
@@ -35,14 +44,15 @@ export const profileRouter = {
       } catch (error) {
         throw INTERNAL_SERVER_ERROR({
           data: {
-            message: `Failed to insert profile by _id ${id}. ${error}`,
+            message: `DB failed to insert profile by _id ${id}. ${error}`,
           },
         });
       }
 
-      return { _id: id };
+      return { id };
     }
   ),
+
   deleteProfile: publicProcedure.profile.deleteProfile.handler(
     async ({ input, context, errors: { NOT_FOUND, FORBIDDEN, INTERNAL_SERVER_ERROR } }) => {
       if (!(context.session && context.user)) {
@@ -53,10 +63,10 @@ export const profileRouter = {
         });
       }
 
-      if (context.user.id !== input) {
+      if (input.id !== context.user.id) {
         throw FORBIDDEN({
           data: {
-            message: "You are not allowed to delete this profile.",
+            message: "Forbidden.",
           },
         });
       }
@@ -66,7 +76,7 @@ export const profileRouter = {
       if (!profile) {
         throw NOT_FOUND({
           data: {
-            message: `Profile not found from ${context.user.name} with id ${input}`,
+            message: `Profile with id ${input} not found.`,
           },
         });
       }
@@ -84,12 +94,13 @@ export const profileRouter = {
       }
     }
   ),
+
   editProfile: protectedProcedure.profile.editProfile.handler(
     async ({ input, context, errors: { INTERNAL_SERVER_ERROR, NOT_FOUND, FORBIDDEN, UNPROCESSABLE_CONTENT } }) => {
       if (context.user.id !== input._id) {
         throw FORBIDDEN({
           data: {
-            message: "You are not allowed to edit this profile.",
+            message: "Forbidden.",
           },
         });
       }
@@ -98,7 +109,7 @@ export const profileRouter = {
       if (!profile) {
         throw NOT_FOUND({
           data: {
-            message: `Profile not found with id ${input._id}`,
+            message: `Profile with id ${input._id} not found.`,
           },
         });
       }
@@ -116,7 +127,7 @@ export const profileRouter = {
       if (!tryParse.success) {
         throw UNPROCESSABLE_CONTENT({
           data: {
-            message: `Invalid Input: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
+            message: `Failed to conform: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
           },
         });
       }
@@ -127,31 +138,24 @@ export const profileRouter = {
       } catch (error) {
         throw INTERNAL_SERVER_ERROR({
           data: {
-            message: `Failed to update profile with id ${input._id}. ${error}`,
+            message: `DB failed to update profile with id ${input._id}. ${error}`,
           },
         });
       }
     }
   ),
-  getProfileById: publicProcedure.profile.getProfile.handler(async ({ input, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR } }) => {
-    try {
-      const profile = await ProfileService.findById(input).lean();
 
-      if (!profile) {
-        throw NOT_FOUND({
-          data: {
-            message: `Profile not found with id ${input}`,
-          },
-        });
-      }
+  getProfileById: publicProcedure.profile.getProfileById.handler(async ({ input, errors: { NOT_FOUND } }) => {
+    const profile = await ProfileService.findById(input.id).lean();
 
-      return profile;
-    } catch (error) {
-      throw INTERNAL_SERVER_ERROR({
+    if (!profile) {
+      throw NOT_FOUND({
         data: {
-          message: `DB failed to fetch profile with id ${input}. ${error}`,
+          message: `Profile with id ${input.id} not found.`,
         },
       });
     }
+
+    return profile;
   }),
 };
