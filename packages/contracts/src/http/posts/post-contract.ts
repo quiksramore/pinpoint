@@ -174,7 +174,6 @@ export const postContract = {
     .input(
       voteSchema.pick({
         postId: true,
-        authorId: true,
         voteValue: true,
       })
     )

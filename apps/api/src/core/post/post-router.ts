@@ -1,6 +1,6 @@
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { pointSchema, postSchema, type voteSchema } from "@pinpoint/contracts";
+import { pointSchema, postSchema, voteSchema } from "@pinpoint/contracts";
 import { S3Client, write } from "bun";
 import { exiftool } from "exiftool-vendored";
 import { fileTypeFromBuffer } from "file-type";
@@ -295,12 +295,12 @@ export const postRouter = {
       const voteDoc: z.infer<typeof voteSchema> = {
         _id: id,
         postId: input.postId,
-        authorId: input.authorId,
+        authorId: context.user.id,
         voteValue: input.voteValue,
         createdAt: new Date(),
       };
 
-      const tryParse = postSchema.safeParse(voteDoc);
+      const tryParse = voteSchema.safeParse(voteDoc);
 
       if (!tryParse.success) {
         throw UNPROCESSABLE_CONTENT({
@@ -344,12 +344,12 @@ export const postRouter = {
       });
     }
 
-    const vote = await VoteService.findOne({ authorId: profile, postId: post });
+    const vote = await VoteService.findOne({ authorId: profile._id, postId: post._id });
 
     if (!vote) {
       throw NOT_FOUND({
         data: {
-          message: `Vote not found with authorId: ${profile} and postId: ${post}`,
+          message: `Vote not found with authorId: ${profile._id} and postId: ${post._id}`,
         },
       });
     }

@@ -2,7 +2,7 @@ import type { postSchema } from "@pinpoint/contracts";
 import Image from "next/image";
 import type z from "zod";
 import UpvoteDownvote from "./upvote-downvote";
-export default function FeedPost({ data, userId }: { data: z.infer<typeof postSchema>; userId: string }) {
+export default function FeedPost({ data }: { data: z.infer<typeof postSchema> }) {
   return (
     <div className="flex flex-col items-center justify-center gap-5 bg-background-800 p-10">
       <p>{data.title}</p>
@@ -17,7 +17,7 @@ export default function FeedPost({ data, userId }: { data: z.infer<typeof postSc
           </div>
           <span>{data.authorSnapshot?.name}</span>
         </div>
-        <UpvoteDownvote postId={data._id} upvotes={data.metrics.upvotes} downvotes={data.metrics.downvotes} userId={userId} />
+        <UpvoteDownvote postId={data._id} upvotes={data.metrics.upvotes} downvotes={data.metrics.downvotes} />
       </div>
     </div>
   );
