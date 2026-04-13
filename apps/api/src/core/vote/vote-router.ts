@@ -122,6 +122,7 @@ export const voteRouter = {
         if (deleteResult.deletedCount === 1 && updateVotes.modifiedCount === 1) return { success: true };
         return { success: false };
       }
+      return { success: false };
     } catch (error) {
       throw INTERNAL_SERVER_ERROR({
         data: {
