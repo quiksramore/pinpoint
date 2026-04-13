@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { webClientORPC } from "../../../../lib/orpc-web-client";
 
 type Vote = "up" | "down" | null;
-type VoteValue = 1 | -1;
+type VoteValue = "UPVOTE" | "DOWNVOTE";
 
 export default function UpvoteDownvote({
   upvotes,
@@ -22,7 +22,7 @@ export default function UpvoteDownvote({
   const [voteId, setVoteId] = useState<string | null>(null);
 
   const { data: voteData } = useQuery(
-    webClientORPC.posts.getUserVote.queryOptions({
+    webClientORPC.vote.getUserVote.queryOptions({
       input: {
         postId,
       },
@@ -31,14 +31,14 @@ export default function UpvoteDownvote({
 
   useEffect(() => {
     if (voteData) {
-      setVote(voteData.voteValue === 1 ? "up" : "down");
+      setVote(voteData.voteValue === "UPVOTE" ? "up" : "down");
       setVoteId(voteData._id);
     }
   }, [voteData]);
 
   const voteMutation = useMutation({
     mutationFn: (voteValue: VoteValue) =>
-      webClientORPC.posts.addVote.call({
+      webClientORPC.vote.addVote.call({
         postId,
         voteValue,
       }),
@@ -50,9 +50,8 @@ export default function UpvoteDownvote({
         throw new Error("Cannot delete vote without vote id");
       }
 
-      return webClientORPC.posts.deleteVote.call({
-        // TODO: make error handling
-        id: voteId as string,
+      return webClientORPC.vote.deleteVote.call({
+        postId,
       });
     },
   });
@@ -78,7 +77,7 @@ export default function UpvoteDownvote({
       setScore((s) => s + 1);
     }
     setVote("up");
-    const success = await voteMutation.mutateAsync(1);
+    const success = await voteMutation.mutateAsync("UPVOTE");
     if (!success) return;
     setVoteId(success.id);
   };
@@ -100,7 +99,7 @@ export default function UpvoteDownvote({
       setScore((s) => s - 1);
     }
     setVote("down");
-    const success = await voteMutation.mutateAsync(-1);
+    const success = await voteMutation.mutateAsync("DOWNVOTE");
     if (!success) return;
     setVoteId(success.id);
   };
