@@ -13,11 +13,12 @@ export const postContract = {
     .input(uiCreatePostFormSchema)
     .output(
       z.object({
-        _id: z.uuidv7(),
+        id: z.uuidv7(),
       })
     )
     .errors({
       FORBIDDEN: {
+        // TODO integrate when creating different *types* of posts, as those have restrictions
         data: z.object({
           message: z.string(),
         }),
@@ -44,7 +45,7 @@ export const postContract = {
       method: "DELETE",
       description: "Delete a post",
     })
-    .input(postSchema.shape._id)
+    .input(z.object({ id: postSchema.shape._id }))
     .output(
       z.object({
         success: z.boolean(),
@@ -52,16 +53,6 @@ export const postContract = {
       })
     )
     .errors({
-      FORBIDDEN: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      UNPROCESSABLE_CONTENT: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
@@ -81,7 +72,7 @@ export const postContract = {
     })
     .input(
       z.object({
-        _id: postSchema.shape._id,
+        id: postSchema.shape._id,
         title: postSchema.shape.title.optional(),
         caption: postSchema.shape.caption.optional(),
       })
@@ -92,11 +83,6 @@ export const postContract = {
       })
     )
     .errors({
-      FORBIDDEN: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
@@ -113,31 +99,28 @@ export const postContract = {
         }),
       },
     }),
-  getPosts: oc
+  getPostsByProfileId: oc
     .route({
       method: "GET",
       description: "Get a user's posts",
     })
-    .input(profileSchema.shape._id)
-    .output(z.array(postSchema))
-    .errors({
-      NOT_FOUND: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-      INTERNAL_SERVER_ERROR: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
-    }),
+    .input(
+      z.object({
+        profileId: profileSchema.shape._id,
+      })
+    )
+    .output(z.array(postSchema)),
+
   getPostById: oc
     .route({
       method: "GET",
       description: "Get a post by ID",
     })
-    .input(postSchema.shape._id)
+    .input(
+      z.object({
+        id: postSchema.shape._id,
+      })
+    )
     .output(postSchema)
     .errors({
       NOT_FOUND: {
@@ -151,6 +134,7 @@ export const postContract = {
         }),
       },
     }),
+
   // TODO: DELETE IN PRODUCTION, ENDPOINT JUST FOR MVP
   getAllPosts: oc
     .route({
@@ -179,7 +163,7 @@ export const postContract = {
     )
     .output(
       z.object({
-        _id: voteSchema.shape._id,
+        id: voteSchema.shape._id,
       })
     )
     .errors({
@@ -206,7 +190,7 @@ export const postContract = {
     })
     .input(
       z.object({
-        _id: voteSchema.shape._id,
+        id: voteSchema.shape._id,
       })
     )
     .output(
@@ -232,6 +216,7 @@ export const postContract = {
         }),
       },
     }),
+
   getUserVote: oc
     .route({
       method: "GET",
