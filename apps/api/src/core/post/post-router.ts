@@ -1,6 +1,6 @@
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { pointSchema, postSchema, type voteSchema } from "@pinpoint/contracts";
+import { pointSchema, postSchema, voteSchema } from "@pinpoint/contracts";
 import { S3Client, write } from "bun";
 import { exiftool } from "exiftool-vendored";
 import { fileTypeFromBuffer } from "file-type";
@@ -269,11 +269,11 @@ export const postRouter = {
 
   addVote: protectedProcedure.posts.addVote.handler(
     async ({ input, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, UNPROCESSABLE_CONTENT } }) => {
-      const profileDoc = await ProfileService.findById(context.user.id);
+      const profileDoc = await ProfileService.findOne({ _id: context.user.id });
 
       if (!profileDoc) {
         throw NOT_FOUND({
-          data: { message: `Profile with id ${context.user.id} not found` },
+          data: { message: `User not found with id: ${context.user.id}` },
         });
       }
 
@@ -292,17 +292,17 @@ export const postRouter = {
       const voteDoc: z.infer<typeof voteSchema> = {
         _id: id,
         postId: input.postId,
-        authorId: input.authorId,
+        authorId: context.user.id,
         voteValue: input.voteValue,
         createdAt: new Date(),
       };
 
-      const tryParse = postSchema.safeParse(voteDoc);
+      const tryParse = voteSchema.safeParse(voteDoc);
 
       if (!tryParse.success) {
         throw UNPROCESSABLE_CONTENT({
           data: {
-            message: `Failed to conform: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
+            message: `Invalid Input: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
           },
         });
       }
@@ -312,12 +312,63 @@ export const postRouter = {
       } catch (error) {
         throw INTERNAL_SERVER_ERROR({
           data: {
-            message: `DB failed to insert document by id ${id}. ${error}`,
+            message: `Failed to insert document by _id ${id}. ${error}`,
+          },
+        });
+      }
+
+      try {
+        await PostService.updateOne(
+          { _id: input.postId },
+          { $inc: { "metrics.upvotes": input.voteValue === 1 ? 1 : 0, "metrics.downvotes": input.voteValue === -1 ? 1 : 0 } }
+        );
+      } catch (error) {
+        throw INTERNAL_SERVER_ERROR({
+          data: {
+            message: `Failed to update post metrics for id ${input.postId}. ${error}`,
           },
         });
       }
 
       return { id };
+    }
+  ),
+
+  deleteVote: protectedProcedure.posts.deleteVote.handler(
+    async ({ input, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, FORBIDDEN } }) => {
+      const voteDoc = await VoteService.findOne({ _id: input.id });
+
+      if (!voteDoc) {
+        throw NOT_FOUND({
+          data: {
+            message: `Vote with id ${input.id} not found.`,
+          },
+        });
+      }
+
+      if (voteDoc.authorId !== context.user.id) {
+        throw FORBIDDEN({
+          data: {
+            message: "Forbidden.",
+          },
+        });
+      }
+
+      try {
+        const deleteResult = await VoteService.deleteOne({ _id: input.id });
+        const updateVotes = await PostService.updateOne(
+          { _id: voteDoc.postId },
+          { $inc: { "metrics.upvotes": voteDoc.voteValue === 1 ? -1 : 0, "metrics.downvotes": voteDoc.voteValue === -1 ? -1 : 0 } }
+        );
+        if (deleteResult.deletedCount === 1 && updateVotes.modifiedCount === 1) return { success: true };
+        return { success: false };
+      } catch (error) {
+        throw INTERNAL_SERVER_ERROR({
+          data: {
+            message: `DB failed to delete vote with id ${input.id}: ${error}`,
+          },
+        });
+      }
     }
   ),
 
@@ -353,38 +404,4 @@ export const postRouter = {
 
     return vote;
   }),
-
-  deleteVote: protectedProcedure.posts.deleteVote.handler(
-    async ({ input, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, FORBIDDEN } }) => {
-      const voteDoc = await VoteService.findOne({ _id: input.id });
-
-      if (!voteDoc) {
-        throw NOT_FOUND({
-          data: {
-            message: `Vote with id ${input.id} not found.`,
-          },
-        });
-      }
-
-      if (voteDoc.authorId !== context.user.id) {
-        throw FORBIDDEN({
-          data: {
-            message: "Forbidden.",
-          },
-        });
-      }
-
-      try {
-        const deleteResult = await VoteService.deleteOne({ _id: input.id });
-        if (deleteResult.deletedCount === 1) return { success: true };
-        return { success: false };
-      } catch (error) {
-        throw INTERNAL_SERVER_ERROR({
-          data: {
-            message: `DB failed to delete vote with id ${input.id}: ${error}`,
-          },
-        });
-      }
-    }
-  ),
 };
