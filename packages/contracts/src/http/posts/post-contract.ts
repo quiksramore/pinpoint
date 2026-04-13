@@ -238,7 +238,11 @@ export const postContract = {
       method: "GET",
       description: "Get a post by ID",
     })
-    .input(postSchema.shape._id)
+    .input(
+      z.object({
+        postId: postSchema.shape._id,
+      })
+    )
     .output(voteSchema)
     .errors({
       NOT_FOUND: {
