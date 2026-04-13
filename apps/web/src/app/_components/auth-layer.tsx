@@ -15,7 +15,7 @@ export default function AuthLayer() {
   const [authId, setAuthId] = useState<string>();
 
   const { data: profileData, isPending: isProfilePending } = useQuery(
-    webClientORPC.profile.getProfile.queryOptions({
+    webClientORPC.profile.getProfileById.queryOptions({
       enabled: !!authId,
       // biome-ignore lint/style/noNonNullAssertion: only enabled when authId is defined
       input: authId!,
