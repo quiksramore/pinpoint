@@ -44,7 +44,8 @@ export const voteContract = {
     })
     .input(
       z.object({
-        id: voteSchema.shape._id,
+        // id: voteSchema.shape._id,
+        postId: postSchema.shape._id,
       })
     )
     .output(
