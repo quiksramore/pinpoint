@@ -60,7 +60,12 @@ export const voteRouter = {
       try {
         await PostService.updateOne(
           { _id: input.postId },
-          { $inc: { "metrics.upvotes": input.voteValue === 1 ? 1 : 0, "metrics.downvotes": input.voteValue === -1 ? 1 : 0 } }
+          {
+            $inc: {
+              "metrics.upvotes": input.voteValue === "UPVOTE" ? 1 : 0,
+              "metrics.downvotes": input.voteValue === "DOWNVOTE" ? 1 : 0,
+            },
+          }
         );
       } catch (error) {
         throw INTERNAL_SERVER_ERROR({
@@ -97,7 +102,12 @@ export const voteRouter = {
       const deleteResult = await VoteService.deleteOne({ _id: input.id });
       const updateVotes = await PostService.updateOne(
         { _id: voteDoc.postId },
-        { $inc: { "metrics.upvotes": voteDoc.voteValue === 1 ? -1 : 0, "metrics.downvotes": voteDoc.voteValue === -1 ? -1 : 0 } }
+        {
+          $inc: {
+            "metrics.upvotes": voteDoc.voteValue === "UPVOTE" ? -1 : 0,
+            "metrics.downvotes": voteDoc.voteValue === "DOWNVOTE" ? -1 : 0,
+          },
+        }
       );
       if (deleteResult.deletedCount === 1 && updateVotes.modifiedCount === 1) return { success: true };
       return { success: false };
