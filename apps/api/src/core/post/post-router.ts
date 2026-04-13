@@ -358,13 +358,13 @@ export const postRouter = {
   }),
 
   deleteVote: protectedProcedure.posts.deleteVote.handler(
-    async ({ input: postId, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, FORBIDDEN } }) => {
-      const postDoc = await PostService.findById({ _id: postId });
+    async ({ input: voteId, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, FORBIDDEN } }) => {
+      const postDoc = await VoteService.findById({ _id: voteId });
 
       if (!postDoc) {
         throw NOT_FOUND({
           data: {
-            message: `Post with id ${postId} not found.`,
+            message: `Vote with id ${voteId} not found.`,
           },
         });
       }
@@ -378,13 +378,13 @@ export const postRouter = {
       }
 
       try {
-        const deleteResult = await VoteService.deleteOne({ _id: postId });
+        const deleteResult = await VoteService.deleteOne({ _id: voteId });
         if (deleteResult.deletedCount === 1) return { success: true };
         return { success: false };
       } catch (error) {
         throw INTERNAL_SERVER_ERROR({
           data: {
-            message: `DB failed to delete post with id ${postId}: ${error}`,
+            message: `DB failed to delete vote with id ${voteId}: ${error}`,
           },
         });
       }
