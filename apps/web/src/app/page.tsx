@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authClientWeb } from "../lib/auth-client-web";
 import { webClientORPC } from "../lib/orpc-web-client";
 
+// TODO remove button to create profiles
 export default function Home() {
   const router = useRouter();
   const createProfileMutation = useMutation(webClientORPC.profile.createProfile.mutationOptions());

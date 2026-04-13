@@ -15,7 +15,7 @@ export const profileContract = {
         location: profileSchema.shape.location.optional(),
       })
     )
-    .output(z.object({ _id: z.uuidv7() }))
+    .output(z.object({ _id: z.string() }))
     .errors({
       FORBIDDEN: {
         data: z.object({
