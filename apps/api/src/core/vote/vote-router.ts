@@ -140,12 +140,12 @@ export const voteRouter = {
       });
     }
 
-    const vote = await VoteService.findOne({ authorId: profile, postId: post });
+    const vote = await VoteService.findOne({ authorId: profile._id, postId: post._id });
 
     if (!vote) {
       throw NOT_FOUND({
         data: {
-          message: `Vote not found with authorId: ${profile} and postId: ${post}`,
+          message: `Vote not found with authorId: ${profile._id} and postId: ${post._id}`,
         },
       });
     }
