@@ -272,7 +272,7 @@ export const postRouter = {
 
   addVote: protectedProcedure.posts.addVote.handler(
     async ({ input, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, UNPROCESSABLE_CONTENT } }) => {
-      const profileDoc = await ProfileService.findById({ _id: context.user.id });
+      const profileDoc = await ProfileService.findOne({ _id: context.user.id });
 
       if (!profileDoc) {
         throw NOT_FOUND({
@@ -324,17 +324,17 @@ export const postRouter = {
     }
   ),
 
-  getUserVote: protectedProcedure.posts.getUserVote.handler(async ({ input: postId, context, errors: { NOT_FOUND } }) => {
-    const post = await PostService.findById(postId).lean();
+  getUserVote: protectedProcedure.posts.getUserVote.handler(async ({ input, context, errors: { NOT_FOUND } }) => {
+    const post = await PostService.findById(input.postId).lean();
 
     if (!post) {
       throw NOT_FOUND({
         data: {
-          message: `Post with id ${postId} not found`,
+          message: `Post with id ${input.postId} not found`,
         },
       });
     }
-    const profile = await ProfileService.findById({ _id: context.user.id });
+    const profile = await ProfileService.findOne({ _id: context.user.id });
 
     if (!profile) {
       throw NOT_FOUND({
