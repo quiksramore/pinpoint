@@ -10,29 +10,40 @@ type VoteValue = 1 | -1;
 export default function UpvoteDownvote({ upvotes, downvotes, postId }: { upvotes?: number; downvotes?: number; postId: string }) {
   const [vote, setVote] = useState<Vote>(null);
   const [score, setScore] = useState(0);
-  const userId = "123"; // TODO: get from auth context
 
   const { data: voteData } = useQuery(
     webClientORPC.posts.getUserVote.queryOptions({
-      input: postId,
+      input: {
+        postId,
+      },
     })
   );
+
+  useEffect(() => {
+    if (voteData) {
+      setVote(voteData.voteValue === 1 ? "up" : "down");
+    }
+  }, [voteData]);
 
   const voteMutation = useMutation({
     mutationFn: (voteValue: VoteValue) =>
       webClientORPC.posts.addVote.call({
-        authorId: userId,
         postId,
         voteValue,
       }),
   });
 
   const voteDeleteMutation = useMutation({
-    mutationFn: () =>
-      webClientORPC.posts.deleteVote.call({
+    mutationFn: () => {
+      if (!voteData?._id) {
+        throw new Error("Cannot delete vote without vote id");
+      }
+
+      return webClientORPC.posts.deleteVote.call({
         // TODO: make error handling
         _id: voteData._id,
-      }),
+      });
+    },
   });
 
   useEffect(() => {

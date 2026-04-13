@@ -1,6 +1,6 @@
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { pointSchema, postSchema, type voteSchema } from "@pinpoint/contracts";
+import { pointSchema, postSchema, voteSchema } from "@pinpoint/contracts";
 import { S3Client, write } from "bun";
 import { exiftool } from "exiftool-vendored";
 import { fileTypeFromBuffer } from "file-type";
@@ -272,7 +272,7 @@ export const postRouter = {
 
   addVote: protectedProcedure.posts.addVote.handler(
     async ({ input, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, UNPROCESSABLE_CONTENT } }) => {
-      const profileDoc = await ProfileService.findById({ _id: context.user.id });
+      const profileDoc = await ProfileService.findOne({ _id: context.user.id });
 
       if (!profileDoc) {
         throw NOT_FOUND({
@@ -295,12 +295,12 @@ export const postRouter = {
       const voteDoc: z.infer<typeof voteSchema> = {
         _id: id,
         postId: input.postId,
-        authorId: input.authorId,
+        authorId: context.user.id,
         voteValue: input.voteValue,
         createdAt: new Date(),
       };
 
-      const tryParse = postSchema.safeParse(voteDoc);
+      const tryParse = voteSchema.safeParse(voteDoc);
 
       if (!tryParse.success) {
         throw UNPROCESSABLE_CONTENT({
@@ -320,21 +320,34 @@ export const postRouter = {
         });
       }
 
+      try {
+        await PostService.updateOne(
+          { _id: input.postId },
+          { $inc: { "metrics.upvotes": input.voteValue === 1 ? 1 : 0, "metrics.downvotes": input.voteValue === -1 ? 1 : 0 } }
+        );
+      } catch (error) {
+        throw INTERNAL_SERVER_ERROR({
+          data: {
+            message: `Failed to update post metrics for id ${input.postId}. ${error}`,
+          },
+        });
+      }
+
       return { _id: id };
     }
   ),
 
-  getUserVote: protectedProcedure.posts.getUserVote.handler(async ({ input: postId, context, errors: { NOT_FOUND } }) => {
-    const post = await PostService.findById(postId).lean();
+  getUserVote: protectedProcedure.posts.getUserVote.handler(async ({ input, context, errors: { NOT_FOUND } }) => {
+    const post = await PostService.findById(input.postId).lean();
 
     if (!post) {
       throw NOT_FOUND({
         data: {
-          message: `Post with id ${postId} not found`,
+          message: `Post with id ${input.postId} not found`,
         },
       });
     }
-    const profile = await ProfileService.findById({ _id: context.user.id });
+    const profile = await ProfileService.findOne({ _id: context.user.id });
 
     if (!profile) {
       throw NOT_FOUND({
@@ -344,12 +357,12 @@ export const postRouter = {
       });
     }
 
-    const vote = await VoteService.findOne({ authorId: profile, postId: post });
+    const vote = await VoteService.findOne({ authorId: profile._id, postId: post._id });
 
     if (!vote) {
       throw NOT_FOUND({
         data: {
-          message: `Vote not found with authorId: ${profile} and postId: ${post}`,
+          message: `Vote not found with authorId: ${profile._id} and postId: ${post._id}`,
         },
       });
     }
@@ -358,13 +371,13 @@ export const postRouter = {
   }),
 
   deleteVote: protectedProcedure.posts.deleteVote.handler(
-    async ({ input: voteId, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, FORBIDDEN } }) => {
-      const voteDoc = await VoteService.findOne({ _id: voteId });
+    async ({ input, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, FORBIDDEN } }) => {
+      const voteDoc = await VoteService.findOne({ _id: input._id });
 
       if (!voteDoc) {
         throw NOT_FOUND({
           data: {
-            message: `Vote with id ${voteId} not found.`,
+            message: `Vote with id ${input._id} not found.`,
           },
         });
       }
@@ -378,13 +391,17 @@ export const postRouter = {
       }
 
       try {
-        const deleteResult = await VoteService.deleteOne({ _id: voteId });
-        if (deleteResult.deletedCount === 1) return { success: true };
+        const deleteResult = await VoteService.deleteOne({ _id: input._id });
+        const updateVotes = await PostService.updateOne(
+          { _id: voteDoc.postId },
+          { $inc: { "metrics.upvotes": voteDoc.voteValue === 1 ? -1 : 0, "metrics.downvotes": voteDoc.voteValue === -1 ? -1 : 0 } }
+        );
+        if (deleteResult.deletedCount === 1 && updateVotes.modifiedCount === 1) return { success: true };
         return { success: false };
       } catch (error) {
         throw INTERNAL_SERVER_ERROR({
           data: {
-            message: `DB failed to delete vote with id ${voteId}: ${error}`,
+            message: `DB failed to delete vote with id ${input._id}: ${error}`,
           },
         });
       }
