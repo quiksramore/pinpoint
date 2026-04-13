@@ -47,17 +47,16 @@ export const uploadToR2 = async (postId: string, file: File, index: number) => {
 };
 
 export const postRouter = {
-  // TODO convert this to protectedProcedure
-  createPost: publicProcedure.posts.createPost.handler(
+  createPost: protectedProcedure.posts.createPost.handler(
     async ({ input, context, errors: { UNPROCESSABLE_CONTENT, INTERNAL_SERVER_ERROR, NOT_FOUND } }) => {
       const id = uuidv7();
 
-      // const profileDocument = await ProfileService.findById({ _id: context.user.id });
-      // if (!profileDocument) {
-      //   throw NOT_FOUND({
-      //     data: { message: `User not found with id: ${context.user.id}` },
-      //   });
-      // }
+      const profileDocument = await ProfileService.findById({ _id: context.user.id });
+      if (!profileDocument) {
+        throw NOT_FOUND({
+          data: { message: `User not found with id: ${context.user.id}` },
+        });
+      }
 
       const synthesisedImages = await Promise.all(
         input.images.map(async (file, index) => {

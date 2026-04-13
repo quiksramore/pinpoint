@@ -18,6 +18,7 @@ export const postContract = {
     )
     .errors({
       FORBIDDEN: {
+        // TODO integrate when creating different *types* of posts, as those have restrictions
         data: z.object({
           message: z.string(),
         }),
@@ -233,6 +234,7 @@ export const postContract = {
         }),
       },
     }),
+
   getUserVote: oc
     .route({
       method: "GET",
