@@ -320,6 +320,19 @@ export const postRouter = {
         });
       }
 
+      try {
+        await PostService.updateOne(
+          { _id: input.postId },
+          { $inc: { "metrics.upvotes": input.voteValue === 1 ? 1 : 0, "metrics.downvotes": input.voteValue === -1 ? 1 : 0 } }
+        );
+      } catch (error) {
+        throw INTERNAL_SERVER_ERROR({
+          data: {
+            message: `Failed to update post metrics for id ${input.postId}. ${error}`,
+          },
+        });
+      }
+
       return { _id: id };
     }
   ),
@@ -379,7 +392,11 @@ export const postRouter = {
 
       try {
         const deleteResult = await VoteService.deleteOne({ _id: input._id });
-        if (deleteResult.deletedCount === 1) return { success: true };
+        const updateVotes = await PostService.updateOne(
+          { _id: voteDoc.postId },
+          { $inc: { "metrics.upvotes": voteDoc.voteValue === 1 ? -1 : 0, "metrics.downvotes": voteDoc.voteValue === -1 ? -1 : 0 } }
+        );
+        if (deleteResult.deletedCount === 1 && updateVotes.modifiedCount === 1) return { success: true };
         return { success: false };
       } catch (error) {
         throw INTERNAL_SERVER_ERROR({
