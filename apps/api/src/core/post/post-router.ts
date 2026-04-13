@@ -54,7 +54,7 @@ export const postRouter = {
       const profileDocument = await ProfileService.findById({ _id: context.user.id });
       if (!profileDocument) {
         throw NOT_FOUND({
-          data: { message: `User not found with id: ${context.user.id}` },
+          data: { message: `Profile with id ${context.user.id} not found` },
         });
       }
 
@@ -110,13 +110,10 @@ export const postRouter = {
 
       const postDoc: z.infer<typeof postSchema> = {
         _id: id,
-        // authorId: context.user.id,
-        authorId: id,
+        authorId: context.user.id,
         authorSnapshot: {
-          // name: context.user.name,
-          name: "foofoo",
-          // image: context.user.image ?? "",
-          image: "www.example.com",
+          name: context.user.name,
+          image: context.user.image ?? "",
         },
         title: input.title,
         caption: input.caption,
@@ -133,9 +130,9 @@ export const postRouter = {
       const tryParse = postSchema.safeParse(postDoc);
 
       if (!tryParse.success) {
-        throw UNPROCESSABLE_CONTENT({
+        throw INTERNAL_SERVER_ERROR({
           data: {
-            message: `Invalid Input: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
+            message: `Failed to conform: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
           },
         });
       }
@@ -150,60 +147,60 @@ export const postRouter = {
         });
       }
 
-      return { _id: id };
+      return { id };
     }
   ),
 
-  deletePost: protectedProcedure.posts.deletePost.handler(
-    async ({ input: postId, context, errors: { NOT_FOUND, FORBIDDEN, INTERNAL_SERVER_ERROR } }) => {
-      const post = await PostService.findById(postId).select({ _id: 1, authorId: 1 }).lean();
+  deletePost: protectedProcedure.posts.deletePost.handler(async ({ input, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR } }) => {
+    const post = await PostService.findById(input.id).select({ _id: 1, authorId: 1 }).lean();
 
-      if (!post) {
-        throw NOT_FOUND({
-          data: {
-            message: `Post with id ${postId} not found.`,
-          },
-        });
-      }
-
-      if (post.authorId !== context.user.id) {
-        throw FORBIDDEN({
-          data: {
-            message: "Forbidden.",
-          },
-        });
-      }
-
-      try {
-        const deleteResult = await PostService.deleteOne({ _id: postId });
-        if (deleteResult.deletedCount === 1) return { success: true };
-        return { success: false };
-      } catch (error) {
-        throw INTERNAL_SERVER_ERROR({
-          data: {
-            message: `DB failed to delete post with id ${postId}: ${error}`,
-          },
-        });
-      }
+    if (!post) {
+      throw NOT_FOUND({
+        data: {
+          message: `Post with id ${input.id} not found.`,
+        },
+      });
     }
-  ),
+
+    if (post.authorId !== context.user.id) {
+      // throwing NOT_FOUND for security.
+      throw NOT_FOUND({
+        data: {
+          message: `Post with id ${input.id} not found.`,
+        },
+      });
+    }
+
+    try {
+      const deleteResult = await PostService.deleteOne({ _id: input.id });
+      if (deleteResult.deletedCount === 1) return { success: true };
+      return { success: false };
+    } catch (error) {
+      throw INTERNAL_SERVER_ERROR({
+        data: {
+          message: `DB failed to delete post with id ${input.id}: ${error}`,
+        },
+      });
+    }
+  }),
 
   editPost: protectedProcedure.posts.editPost.handler(
-    async ({ input, context, errors: { INTERNAL_SERVER_ERROR, NOT_FOUND, FORBIDDEN, UNPROCESSABLE_CONTENT } }) => {
-      const post = await PostService.findById(input._id).select({ _id: 1, authorId: 1 }).lean();
+    async ({ input, context, errors: { INTERNAL_SERVER_ERROR, NOT_FOUND, UNPROCESSABLE_CONTENT } }) => {
+      const post = await PostService.findById(input.id).select({ _id: 1, authorId: 1 }).lean();
 
       if (!post) {
         throw NOT_FOUND({
           data: {
-            message: `Post with id ${input._id} not found.`,
+            message: `Post with id ${input.id} not found.`,
           },
         });
       }
 
       if (post.authorId !== context.user.id) {
-        throw FORBIDDEN({
+        // throwing NOT_FOUND for security.
+        throw NOT_FOUND({
           data: {
-            message: "Forbidden.",
+            message: `Post with id ${input.id} not found.`,
           },
         });
       }
@@ -230,43 +227,44 @@ export const postRouter = {
       if (!tryParse.success) {
         throw UNPROCESSABLE_CONTENT({
           data: {
-            message: tryParse.error.issues[0]?.message ?? "Invalid update payload.",
+            message: `Failed to conform: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
           },
         });
       }
 
       try {
-        const result = await PostService.updateOne({ _id: input._id, authorId: context.user.id }, { $set: tryParse.data });
+        const result = await PostService.updateOne({ _id: input.id, authorId: context.user.id }, { $set: tryParse.data });
         if (result.matchedCount === 0) return { success: true };
         return { success: false };
       } catch (error) {
         throw INTERNAL_SERVER_ERROR({
           data: {
-            message: `DB failed to edit post with id ${input._id}. ${error}`,
+            message: `DB failed to edit post with id ${input.id}. ${error}`,
           },
         });
       }
     }
   ),
 
-  getPosts: protectedProcedure.posts.getPosts.handler(
-    async ({ input }) => await PostService.find({ authorId: input }).sort({ createdAt: -1 }).lean()
+  getPostsByProfileId: protectedProcedure.posts.getPostsByProfileId.handler(
+    async ({ input }) => await PostService.find({ authorId: input.profileId }).sort({ createdAt: -1 }).lean()
   ),
 
-  getPostById: protectedProcedure.posts.getPostById.handler(async ({ input: postId, errors: { NOT_FOUND } }) => {
-    const post = await PostService.findById(postId).lean();
+  getPostById: protectedProcedure.posts.getPostById.handler(async ({ input, errors: { NOT_FOUND } }) => {
+    const post = await PostService.findById(input.id).lean();
 
     if (!post) {
       throw NOT_FOUND({
         data: {
-          message: `Post with id ${postId} not found`,
+          message: `Post with id ${input.id} not found`,
         },
       });
     }
 
     return post;
   }),
-  // TODO: endpoint just for MVP, REMOVE IN PRODUCTION
+
+  // TODO: DELETE IN PRODUCTION, ENDPOINT JUST FOR MVP
   getAllPosts: publicProcedure.posts.getAllPosts.handler(async () => await PostService.find({}).sort({ createdAt: -1 }).lean()),
 
   addVote: protectedProcedure.posts.addVote.handler(
@@ -275,7 +273,7 @@ export const postRouter = {
 
       if (!profileDoc) {
         throw NOT_FOUND({
-          data: { message: `User not found with id: ${context.user.id}` },
+          data: { message: `Profile with id ${context.user.id} not found` },
         });
       }
 
@@ -304,7 +302,7 @@ export const postRouter = {
       if (!tryParse.success) {
         throw UNPROCESSABLE_CONTENT({
           data: {
-            message: `Invalid Input: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
+            message: `Failed to conform: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
           },
         });
       }
@@ -314,12 +312,12 @@ export const postRouter = {
       } catch (error) {
         throw INTERNAL_SERVER_ERROR({
           data: {
-            message: `Failed to insert document by _id ${id}. ${error}`,
+            message: `DB failed to insert document by id ${id}. ${error}`,
           },
         });
       }
 
-      return { _id: id };
+      return { id };
     }
   ),
 
@@ -357,13 +355,13 @@ export const postRouter = {
   }),
 
   deleteVote: protectedProcedure.posts.deleteVote.handler(
-    async ({ input: voteId, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, FORBIDDEN } }) => {
-      const voteDoc = await VoteService.findOne({ _id: voteId });
+    async ({ input, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, FORBIDDEN } }) => {
+      const voteDoc = await VoteService.findOne({ _id: input.id });
 
       if (!voteDoc) {
         throw NOT_FOUND({
           data: {
-            message: `Vote with id ${voteId} not found.`,
+            message: `Vote with id ${input.id} not found.`,
           },
         });
       }
@@ -377,13 +375,13 @@ export const postRouter = {
       }
 
       try {
-        const deleteResult = await VoteService.deleteOne({ _id: voteId });
+        const deleteResult = await VoteService.deleteOne({ _id: input.id });
         if (deleteResult.deletedCount === 1) return { success: true };
         return { success: false };
       } catch (error) {
         throw INTERNAL_SERVER_ERROR({
           data: {
-            message: `DB failed to delete vote with id ${voteId}: ${error}`,
+            message: `DB failed to delete vote with id ${input.id}: ${error}`,
           },
         });
       }
