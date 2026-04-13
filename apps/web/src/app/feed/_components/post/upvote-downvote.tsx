@@ -11,12 +11,10 @@ export default function UpvoteDownvote({
   upvotes,
   downvotes,
   postId,
-  userId,
 }: {
   upvotes?: number;
   downvotes?: number;
   postId: string;
-  userId: string;
 }) {
   const [vote, setVote] = useState<Vote>(null);
   const [score, setScore] = useState(0);
@@ -32,18 +30,22 @@ export default function UpvoteDownvote({
   const voteMutation = useMutation({
     mutationFn: (voteValue: VoteValue) =>
       webClientORPC.posts.addVote.call({
-        authorId: userId,
         postId,
         voteValue,
       }),
   });
 
   const voteDeleteMutation = useMutation({
-    mutationFn: () =>
-      webClientORPC.posts.deleteVote.call({
+    mutationFn: () => {
+      if (!voteData?._id) {
+        throw new Error("Cannot delete vote without vote id");
+      }
+
+      return webClientORPC.posts.deleteVote.call({
         // TODO: make error handling
         _id: voteData._id,
-      }),
+      });
+    },
   });
 
   useEffect(() => {
