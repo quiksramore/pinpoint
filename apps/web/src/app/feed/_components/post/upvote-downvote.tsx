@@ -7,15 +7,7 @@ import { webClientORPC } from "../../../../lib/orpc-web-client";
 type Vote = "up" | "down" | null;
 type VoteValue = 1 | -1;
 
-export default function UpvoteDownvote({
-  upvotes,
-  downvotes,
-  postId,
-}: {
-  upvotes?: number;
-  downvotes?: number;
-  postId: string;
-}) {
+export default function UpvoteDownvote({ upvotes, downvotes, postId }: { upvotes?: number; downvotes?: number; postId: string }) {
   const [vote, setVote] = useState<Vote>(null);
   const [score, setScore] = useState(0);
 
@@ -26,6 +18,12 @@ export default function UpvoteDownvote({
       },
     })
   );
+
+  useEffect(() => {
+    if (voteData) {
+      setVote(voteData.voteValue === 1 ? "up" : "down");
+    }
+  }, [voteData]);
 
   const voteMutation = useMutation({
     mutationFn: (voteValue: VoteValue) =>
