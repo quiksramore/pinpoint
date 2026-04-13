@@ -14,7 +14,7 @@ export const VALID_MIME_TYPES = ["image/jpeg", "image/png", "image/heic", "image
 export const postSchema = z.object({
   _id: z.uuidv7(),
   // biome-ignore format: readability
-  authorId: z.uuidv7(),
+  authorId: z.string(), // better-auth user id
   // biome-ignore format: readability
   authorSnapshot: z.object({
     name: z.string(),

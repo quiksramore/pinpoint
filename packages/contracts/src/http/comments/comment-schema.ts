@@ -3,7 +3,7 @@ import { z } from "zod";
 export const commentSchema = z.object({
   _id: z.uuidv7(),
   parentPostId: z.uuidv7(),
-  authorId: z.uuidv7(),
+  authorId: z.string(),
   authorSnapshot: z.object(
     {
       name: z.string().min(1, "Author name must be provided."),
@@ -19,6 +19,6 @@ export const commentSchema = z.object({
 
 export const commentLikeSchema = z.object({
   _id: z.uuidv7(),
-  authorId: z.uuidv7(),
+  authorId: z.string(), // better-auth user id
   commentId: z.uuidv7(),
 }); // { commentId: 1, userId: 1 }

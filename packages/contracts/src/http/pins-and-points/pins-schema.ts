@@ -31,7 +31,7 @@ export const pinTypes: pinType = {
 export const pinSchema = z.object({
   _id: z.uuidv7(),
   name: z.enum(Object.keys(pinTypes)),
-  ownerUserId: z.uuidv7(),
+  ownerUserId: z.string(), // better-auth user id
   yieldingPostId: z.uuidv7(),
   createdAt: z.coerce.date(),
 });
