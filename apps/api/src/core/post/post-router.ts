@@ -48,7 +48,7 @@ export const uploadToR2 = async (postId: string, file: File, index: number) => {
 
 export const postRouter = {
   createPost: protectedProcedure.posts.createPost.handler(
-    async ({ input, context, errors: { UNPROCESSABLE_CONTENT, INTERNAL_SERVER_ERROR, NOT_FOUND } }) => {
+    async ({ input, context, errors: { UNPROCESSABLE_CONTENT, NOT_FOUND, INTERNAL_SERVER_ERROR } }) => {
       const id = uuidv7();
 
       const profileDocument = await ProfileService.findById({ _id: context.user.id });
@@ -145,7 +145,7 @@ export const postRouter = {
       } catch (error) {
         throw INTERNAL_SERVER_ERROR({
           data: {
-            message: `Failed to insert document by _id ${id}. ${error}`,
+            message: `Failed to insert document by _id=${id}. ${error}`,
           },
         });
       }
