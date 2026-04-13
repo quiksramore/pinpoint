@@ -11,7 +11,6 @@ export default function UpvoteDownvote({
   upvotes,
   downvotes,
   postId,
-  userId,
 }: {
   upvotes?: number;
   downvotes?: number;
@@ -20,6 +19,7 @@ export default function UpvoteDownvote({
 }) {
   const [vote, setVote] = useState<Vote>(null);
   const [score, setScore] = useState(0);
+  const [voteId, setVoteId] = useState<string | null>(null);
 
   const { data: voteData } = useQuery(
     webClientORPC.posts.getUserVote.queryOptions({
@@ -32,6 +32,7 @@ export default function UpvoteDownvote({
   useEffect(() => {
     if (voteData) {
       setVote(voteData.voteValue === 1 ? "up" : "down");
+      setVoteId(voteData._id);
     }
   }, [voteData]);
 
@@ -45,13 +46,13 @@ export default function UpvoteDownvote({
 
   const voteDeleteMutation = useMutation({
     mutationFn: () => {
-      if (!voteData?._id) {
+      if (!voteId) {
         throw new Error("Cannot delete vote without vote id");
       }
 
       return webClientORPC.posts.deleteVote.call({
         // TODO: make error handling
-        id: voteData._id,
+        id: voteId as string,
       });
     },
   });
@@ -60,39 +61,47 @@ export default function UpvoteDownvote({
     setScore((upvotes || 0) - (downvotes || 0));
   }, [upvotes, downvotes]);
 
-  const handleUpvote = () => {
+  const handleUpvote = async () => {
     if (vote === "up") {
+      const success = await voteDeleteMutation.mutateAsync();
+      if (!success) return;
       setScore((s) => s - 1); // already upvoted
       setVote(null);
-      voteDeleteMutation.mutate();
       return;
     }
 
     if (vote === "down") {
+      const success = await voteDeleteMutation.mutateAsync();
+      if (!success) return;
       setScore((s) => s + 2); // remove downvote + add upvote
-      voteDeleteMutation.mutate();
     } else {
       setScore((s) => s + 1);
     }
-    voteMutation.mutate(1);
     setVote("up");
+    const success = await voteMutation.mutateAsync(1);
+    if (!success) return;
+    setVoteId(success.id);
   };
 
-  const handleDownvote = () => {
+  const handleDownvote = async () => {
     if (vote === "down") {
+      const success = await voteDeleteMutation.mutateAsync();
+      if (!success) return;
       setScore((s) => s + 1); // already downvoted
       setVote(null);
-      voteDeleteMutation.mutate();
       return;
     }
 
     if (vote === "up") {
+      const success = await voteDeleteMutation.mutateAsync();
+      if (!success) return;
       setScore((s) => s - 2); // remove upvote + add downvote
-      voteDeleteMutation.mutate();
     } else {
       setScore((s) => s - 1);
     }
-    voteMutation.mutate(-1);
+    const success = await voteMutation.mutateAsync(-1);
+    if (!success) return;
+    setVoteId(success.id);
     setVote("down");
   };
 
