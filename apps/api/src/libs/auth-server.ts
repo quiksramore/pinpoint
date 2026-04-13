@@ -6,6 +6,7 @@ import { databaseConnection } from "../database/database";
 import { env } from "../env";
 
 const database = databaseConnection.getClient().db();
+const allowedEmails = ["serbakonyt@gmail.com", "shreyas.ayyengar@gmail.com", "quiksramore@gmail.com"];
 
 const basePath = env.ENV === "development" ? "/api/auth" : "/auth";
 
@@ -23,7 +24,7 @@ export const authServer = betterAuth({
       accessType: "offline",
       mapProfileToUser: (profile) => {
         const email = profile.email;
-        if (!email?.endsWith("@ucsc.edu")) {
+        if (!allowedEmails.includes(email)) {
           // TODO emails must be whitelisted
           const headers = new Headers();
           headers.set("location", `${env.WEBSITE_URL}/auth/error?message=invalid_email`);
