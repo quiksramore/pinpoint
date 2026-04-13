@@ -5,7 +5,7 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { databaseConnection } from "../database/database";
 import { env } from "../env";
 
-const database = databaseConnection.getClient().db();
+const database = databaseConnection.getClient().db(env.DATABASE_NAME); // must specify database name here, or better-auth will auto-create 'test'
 const allowedEmails = ["serbakonyt@gmail.com", "shreyas.ayyengar@gmail.com", "quiksramore@gmail.com"];
 
 const basePath = env.ENV === "development" ? "/api/auth" : "/auth";
