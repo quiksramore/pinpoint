@@ -51,7 +51,7 @@ export const postRouter = {
     async ({ input, context, errors: { UNPROCESSABLE_CONTENT, NOT_FOUND, INTERNAL_SERVER_ERROR } }) => {
       const id = uuidv7();
 
-      const profileDocument = await ProfileService.findById({ _id: context.user.id });
+      const profileDocument = await ProfileService.findById(context.user.id);
       if (!profileDocument) {
         throw NOT_FOUND({
           data: { message: `Profile with id ${context.user.id} not found` },
