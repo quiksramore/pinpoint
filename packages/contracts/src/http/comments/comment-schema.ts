@@ -20,5 +20,5 @@ export const commentSchema = z.object({
 export const commentLikeSchema = z.object({
   _id: z.uuidv7(),
   authorId: z.uuidv7(),
-  parentCommentId: z.uuidv7(),
+  commentId: z.uuidv7(),
 }); // { commentId: 1, userId: 1 }
