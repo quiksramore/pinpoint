@@ -51,7 +51,7 @@ export default function UpvoteDownvote({
 
       return webClientORPC.posts.deleteVote.call({
         // TODO: make error handling
-        _id: voteData._id,
+        id: voteData._id,
       });
     },
   });
