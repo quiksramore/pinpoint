@@ -15,7 +15,7 @@ export const profileContract = {
         location: profileSchema.shape.location.optional(),
       })
     )
-    .output(z.object({ _id: z.string() }))
+    .output(z.object({ id: z.string() }))
     .errors({
       FORBIDDEN: {
         data: z.object({
@@ -33,14 +33,28 @@ export const profileContract = {
         }),
       },
     }),
-  getProfile: oc
+
+  deleteProfile: oc
     .route({
-      method: "GET",
-      description: "Get a user's profile information",
+      method: "DELETE",
+      description: "Delete a user's profile",
     })
-    .input(profileSchema.shape._id)
-    .output(profileSchema)
+    .input(
+      z.object({
+        id: profileSchema.shape._id,
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+      })
+    )
     .errors({
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
@@ -52,6 +66,7 @@ export const profileContract = {
         }),
       },
     }),
+
   editProfile: oc
     .route({
       method: "POST",
@@ -98,23 +113,19 @@ export const profileContract = {
         }),
       },
     }),
-  deleteProfile: oc
+
+  getProfileById: oc
     .route({
-      method: "DELETE",
-      description: "Delete a user's profile",
+      method: "GET",
+      description: "Get a user's profile information",
     })
-    .input(profileSchema.shape._id)
-    .output(
+    .input(
       z.object({
-        success: z.boolean(),
+        id: profileSchema.shape._id,
       })
     )
+    .output(profileSchema)
     .errors({
-      FORBIDDEN: {
-        data: z.object({
-          message: z.string(),
-        }),
-      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),

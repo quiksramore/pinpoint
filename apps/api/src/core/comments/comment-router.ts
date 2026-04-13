@@ -8,15 +8,14 @@ import { CommentService } from "./comment-service";
 
 export const commentRouter = {
   addComment: protectedProcedure.comment.addComment.handler(async ({ input, context, errors: { INTERNAL_SERVER_ERROR, NOT_FOUND } }) => {
-    const id = uuidv7();
     const postDocument = await PostService.findById(input.parentPostId);
-
     if (!postDocument) {
       throw NOT_FOUND({
-        data: { message: `User not found with email: ${context.user.email}` },
+        data: { message: `Post with id ${input.parentPostId} not found.` },
       });
     }
 
+    const id = uuidv7();
     const commentDoc: z.input<typeof commentSchema> = {
       _id: id,
       parentPostId: input.parentPostId,
@@ -35,7 +34,7 @@ export const commentRouter = {
     if (!tryParse.success) {
       throw INTERNAL_SERVER_ERROR({
         data: {
-          message: `Invalid Input: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
+          message: `Failed to conform: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
         },
       });
     }
@@ -45,17 +44,17 @@ export const commentRouter = {
     } catch (error) {
       throw INTERNAL_SERVER_ERROR({
         data: {
-          message: `Failed to insert document by _id ${id}. ${error}`,
+          message: `DB failed to insert comment with id ${id}: ${error}`,
         },
       });
     }
 
-    return id;
+    return { id };
   }),
+
   deleteComment: protectedProcedure.comment.deleteComment.handler(
     async ({ input: commentId, context, errors: { INTERNAL_SERVER_ERROR, NOT_FOUND, FORBIDDEN } }) => {
       const comment = await CommentService.findById(commentId).select({ _id: 1 });
-
       if (!comment) {
         throw NOT_FOUND({
           data: {
@@ -64,7 +63,16 @@ export const commentRouter = {
         });
       }
 
-      if (comment.authorId !== context.user.id) {
+      const post = await PostService.findById(comment.parentPostId).select({ _id: 1 });
+      if (!post) {
+        throw NOT_FOUND({
+          data: {
+            message: `Post with id ${comment.parentPostId} not found.`,
+          },
+        });
+      }
+
+      if (comment.authorId !== context.user.id || post.authorId !== context.user.id) {
         throw FORBIDDEN({
           data: {
             message: "Forbidden.",
@@ -74,8 +82,7 @@ export const commentRouter = {
 
       try {
         const deleteResult = await CommentService.deleteOne({ _id: commentId });
-        if (deleteResult.deletedCount === 1) return { success: true };
-        return { success: false };
+        return { success: deleteResult.deletedCount === 1 };
       } catch (error) {
         throw INTERNAL_SERVER_ERROR({
           data: {
@@ -85,87 +92,72 @@ export const commentRouter = {
       }
     }
   ),
-  likeComment: protectedProcedure.comment.likeComment.handler(
-    async ({ input: parentCommentIdInput, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR } }) => {
-      const id = uuidv7();
-      const comment = await CommentService.findById(parentCommentIdInput).select({ _id: 1 });
 
-      if (!comment) {
-        throw NOT_FOUND({
-          data: {
-            message: "Comment not found",
-          },
-        });
-      }
+  addLike: protectedProcedure.comment.addLike.handler(async ({ input, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR } }) => {
+    const id = uuidv7();
+    const comment = await CommentService.findById(input.id).lean();
 
-      const likeDoc: z.input<typeof commentLikeSchema> = {
-        _id: id,
+    if (!comment) {
+      throw NOT_FOUND({
+        data: {
+          message: `Comment with id ${input.id} not found.`,
+        },
+      });
+    }
+
+    const likeDoc: z.input<typeof commentLikeSchema> = {
+      _id: id,
+      authorId: context.user.id,
+      commentId: input.id,
+    };
+
+    const tryParse = commentLikeSchema.safeParse(likeDoc);
+
+    if (!tryParse.success) {
+      throw INTERNAL_SERVER_ERROR({
+        data: {
+          message: `Failed to conform: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
+        },
+      });
+    }
+
+    try {
+      await CommentLikeService.insertOne(likeDoc);
+    } catch (error) {
+      throw INTERNAL_SERVER_ERROR({
+        data: {
+          message: `DB failed to insert comment like with id ${id}. ${error}`,
+        },
+      });
+    }
+
+    return { success: true };
+  }),
+
+  removeLike: protectedProcedure.comment.removeLike.handler(async ({ input, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR } }) => {
+    const commentDocument = await CommentService.findById(input.id).lean();
+
+    if (!commentDocument) {
+      throw NOT_FOUND({
+        data: {
+          message: `Comment with id ${input.id} not found.`,
+        },
+      });
+    }
+
+    try {
+      await CommentLikeService.deleteOne({
+        commentId: input.id,
         authorId: context.user.id,
-        parentCommentId: parentCommentIdInput,
-      };
-
-      const tryParse = commentLikeSchema.safeParse(likeDoc);
-
-      if (!tryParse.success) {
-        throw INTERNAL_SERVER_ERROR({
-          data: {
-            message: `Invalid Input: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
-          },
-        });
-      }
-
-      try {
-        await CommentLikeService.insertOne(likeDoc);
-      } catch (error) {
-        throw INTERNAL_SERVER_ERROR({
-          data: {
-            message: `Failed to insert document by _id ${id}. ${error}`,
-          },
-        });
-      }
+      });
 
       return { success: true };
+    } catch (error) {
+      throw INTERNAL_SERVER_ERROR({
+        data: {
+          message: `DB failed to delete comment like for comment ${input.id}: ${error}`,
+        },
+      });
     }
-  ),
-  unlikeComment: protectedProcedure.comment.unlikeComment.handler(
-    async ({ input, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, FORBIDDEN } }) => {
-      const commentId = await CommentService.findById(input.parentCommentId).select({ _id: 1 });
-      const commentLikeId = await CommentLikeService.findById(input.commentLikeId).select({ _id: 1 });
-
-      if (!commentId) {
-        throw NOT_FOUND({
-          data: {
-            message: `Comment with id ${input.parentCommentId} not found.`,
-          },
-        });
-      }
-
-      if (!commentLikeId) {
-        throw NOT_FOUND({
-          data: {
-            message: `Like with id ${input.commentLikeId} not found on comment with id ${input.parentCommentId}.`,
-          },
-        });
-      }
-
-      if (commentLikeId.authorId !== context.user.id) {
-        throw FORBIDDEN({
-          data: {
-            message: "Forbidden.",
-          },
-        });
-      }
-      try {
-        const deleteResult = await CommentLikeService.deleteOne({ _id: commentLikeId });
-        if (deleteResult.deletedCount === 1) return { success: true };
-        return { success: false };
-      } catch (error) {
-        throw INTERNAL_SERVER_ERROR({
-          data: {
-            message: `DB failed to delete comment like with id ${commentId}: ${error}`,
-          },
-        });
-      }
-    }
-  ),
+  }),
 };
