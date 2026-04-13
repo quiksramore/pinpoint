@@ -359,9 +359,9 @@ export const postRouter = {
 
   deleteVote: protectedProcedure.posts.deleteVote.handler(
     async ({ input: voteId, context, errors: { NOT_FOUND, INTERNAL_SERVER_ERROR, FORBIDDEN } }) => {
-      const postDoc = await VoteService.findById({ _id: voteId });
+      const voteDoc = await VoteService.findOne({ _id: voteId });
 
-      if (!postDoc) {
+      if (!voteDoc) {
         throw NOT_FOUND({
           data: {
             message: `Vote with id ${voteId} not found.`,
@@ -369,7 +369,7 @@ export const postRouter = {
         });
       }
 
-      if (postDoc.authorId !== context.user.id) {
+      if (voteDoc.authorId !== context.user.id) {
         throw FORBIDDEN({
           data: {
             message: "Forbidden.",
