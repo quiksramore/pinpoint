@@ -9,8 +9,6 @@ export const pointSchema = z.object({
   longitude: z.number().min(-180).max(180),
 });
 
-export const VALID_MIME_TYPES = ["image/jpeg", "image/png", "image/heic", "image/heif", "image/dng"] as const;
-
 export const postSchema = z.object({
   _id: z.uuidv7(),
   // biome-ignore format: readability
