@@ -99,10 +99,10 @@ export default function UpvoteDownvote({
     } else {
       setScore((s) => s - 1);
     }
+    setVote("down");
     const success = await voteMutation.mutateAsync(-1);
     if (!success) return;
     setVoteId(success.id);
-    setVote("down");
   };
 
   return (
