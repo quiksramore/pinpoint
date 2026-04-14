@@ -135,9 +135,21 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
 
   return (
     <div className="flex items-center gap-2">
-      <ChevronUp onClick={handleUpvote} className={cn("cursor-pointer", currentVote === "UPVOTE" ? "text-green-500" : "")} />
+      <ChevronUp
+        onClick={async (e) => {
+          e.stopPropagation(); // prevent event bubbling to parent elements (e.g., opening post dialog)
+          await handleUpvote();
+        }}
+        className={cn("cursor-pointer", currentVote === "UPVOTE" ? "text-green-500" : "")}
+      />
       {score}
-      <ChevronDown onClick={handleDownvote} className={cn("cursor-pointer", currentVote === "DOWNVOTE" ? "text-red-500" : "")} />
+      <ChevronDown
+        onClick={async (e) => {
+          e.stopPropagation(); // prevent event bubbling to parent elements (e.g., opening post dialog)
+          await handleDownvote();
+        }}
+        className={cn("cursor-pointer", currentVote === "DOWNVOTE" ? "text-red-500" : "")}
+      />
     </div>
   );
 }
