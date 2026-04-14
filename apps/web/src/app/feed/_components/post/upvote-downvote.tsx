@@ -92,11 +92,10 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
   }, [upvotes, downvotes]);
 
   const handleUpvote = async () => {
+    if (voteDeleteMutation.isPending) return; // prevent multiple rapid clicks
     if (currentVote === "UPVOTE") {
-      if (!deletePending) {
-        const { success } = await voteDeleteMutation.mutateAsync({ postId });
-        if (!success) return;
-      }
+      const { success } = await voteDeleteMutation.mutateAsync({ postId });
+      if (!success) return;
 
       setScore((s) => s - 1); // already upvoted
       setCurrentVote(null);
@@ -113,6 +112,7 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
   };
 
   const handleDownvote = async () => {
+    if (voteDeleteMutation.isPending) return; // prevent multiple rapid clicks
     if (currentVote === "DOWNVOTE") {
       const { success } = await voteDeleteMutation.mutateAsync({ postId });
       if (!success) return;
