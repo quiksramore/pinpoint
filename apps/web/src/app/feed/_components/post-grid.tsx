@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { authClientWeb } from "../../../lib/auth-client-web";
 import { webClientORPC } from "../../../lib/orpc-web-client";
-import FeedPost from "./post/feed-post";
+import PostDialog from "./post/post-dialog";
 
 export default function PostGrid() {
   const { data, isLoading, error } = useQuery(
@@ -20,7 +20,8 @@ export default function PostGrid() {
       {isLoading && <p>Loading...</p>}
       {error && <p>Error loading posts: {error.message}</p>}
       {data?.map((post) => (
-        <FeedPost key={post._id} data={post} userId={userId ?? ""} />
+        <PostDialog key={post._id} data={post} />
+        // <FeedPost key={post._id} data={post} />
       ))}
     </div>
   );
