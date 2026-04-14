@@ -12,16 +12,16 @@ export default function FeedPost({ data, className }: { data: z.infer<typeof pos
         <Image src="https://picsum.photos/seed/picsum/200/300" alt={data.title} fill className="object-cover" />
       </div>
       <div className="flex w-full justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           {/* TODO: Change SRC to R2 bucket URL */}
           <Avatar>
-            <AvatarImage src="https://picsum.photos/seed/picsum/200/300" alt={data.authorSnapshot?.name} />
+            <AvatarImage src={data.authorSnapshot?.image} alt={data.authorSnapshot?.name} />
             <AvatarFallback>{data.authorSnapshot?.name.slice(0, 2)}</AvatarFallback>
           </Avatar>
           {/* <div className="relative h-7 w-7 overflow-hidden rounded-full">
             <Image src="https://picsum.photos/seed/picsum/200/300" alt={data.authorSnapshot?.name} fill className="object-cover" />
           </div> */}
-          <span>{data.authorSnapshot?.name}</span>
+          <span className="truncate">{data.authorSnapshot?.name}</span>
         </div>
         <UpvoteDownvote postId={data._id} upvotes={data.metrics.upvotes} downvotes={data.metrics.downvotes} />
       </div>
