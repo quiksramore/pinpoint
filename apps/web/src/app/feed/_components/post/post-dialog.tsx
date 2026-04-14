@@ -1,7 +1,8 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@pinpoint/shad-ui/components/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@pinpoint/shad-ui/components/dialog";
 import type z from "zod";
 import type { postSchema } from "../../../../../../../packages/contracts/src/http/posts/post-schema";
 import FeedPost from "./feed-post";
+import PostDialogContent from "./post-dialog-content";
 
 export default function PostDialog({ data }: { data: z.infer<typeof postSchema> }) {
   return (
@@ -12,9 +13,7 @@ export default function PostDialog({ data }: { data: z.infer<typeof postSchema> 
         </div>
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{data.title}</DialogTitle>
-        </DialogHeader>
+        <PostDialogContent data={data} />
       </DialogContent>
     </Dialog>
   );
