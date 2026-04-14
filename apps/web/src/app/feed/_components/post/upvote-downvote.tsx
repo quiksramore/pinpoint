@@ -11,6 +11,7 @@ type VoteValue = z.infer<typeof voteSchema>["voteValue"];
 export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId: string; upvotes?: number; downvotes?: number }) {
   const queryClient = useQueryClient();
 
+  // TODO: create a useStore() for these states to ensure syncronization across components (e.g., post dialog + feed post)
   const [currentVote, setCurrentVote] = useState<VoteValue | null>(null);
   const [score, setScore] = useState(0);
 
