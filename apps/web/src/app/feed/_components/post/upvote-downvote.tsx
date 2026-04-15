@@ -20,15 +20,14 @@ function getScoreDelta(previousVote: VoteValue | null, nextVote: VoteValue | nul
   return 0;
 }
 
+// TODO check optimistic approach
 export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId: string; upvotes?: number; downvotes?: number }) {
   const queryClient = useQueryClient();
   const initialScore = (upvotes || 0) - (downvotes || 0);
   const voteQueryKey = webClientORPC.vote.getUserVote.queryKey({ input: { postId } });
   const scoreQueryKey = ["post-vote-score", postId] as const;
 
-  const { data: voteData } = useQuery(
-    webClientORPC.vote.getUserVote.queryOptions({ input: { postId } })
-  );
+  const { data: voteData } = useQuery(webClientORPC.vote.getUserVote.queryOptions({ input: { postId } }));
 
   // Derive directly — no separate cache entry, no useEffect bridge
   const currentVote = (voteData?.voteValue ?? null) as VoteValue | null;
@@ -88,11 +87,11 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
       queryClient.invalidateQueries({ queryKey: voteQueryKey });
     },
   });
-  
+
   useEffect(() => {
     queryClient.setQueryData<number>(scoreQueryKey, (existingScore) => existingScore ?? initialScore);
   }, [queryClient, postId, initialScore]);
-  
+
   const handleUpvote = async () => {
     if (voteDeleteMutation.isPending || voteAddMutation.isPending) return; // prevent multiple rapid clicks
     if (currentVote === "UPVOTE") {
@@ -100,11 +99,11 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
       if (!success) return;
       return;
     }
-    
+
     const success = await voteAddMutation.mutateAsync({ postId, voteValue: "UPVOTE" });
     if (!success) return;
   };
-  
+
   const handleDownvote = async () => {
     if (voteDeleteMutation.isPending || voteAddMutation.isPending) return; // prevent multiple rapid clicks
     if (currentVote === "DOWNVOTE") {
@@ -112,7 +111,7 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
       if (!success) return;
       return;
     }
-    
+
     const success = await voteAddMutation.mutateAsync({
       postId,
       voteValue: "DOWNVOTE",
@@ -128,7 +127,7 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
           await handleUpvote();
         }}
         className={cn("cursor-pointer", currentVote === "UPVOTE" ? "text-green-500" : "")}
-        />
+      />
       {score}
       <ChevronDown
         onClick={async (e) => {
