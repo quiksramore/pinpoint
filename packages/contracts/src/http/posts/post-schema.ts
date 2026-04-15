@@ -7,8 +7,8 @@ export const MAX_IMAGES = 5;
 export const pointSchema = z.object({
   type: z.literal("Point"),
   coordinates: z.tuple([
-    z.number().min(-90).max(90), // latitude
-    z.number().min(-180).max(180), // longitude
+    z.number().min(-90).max(90), // longitude (x)
+    z.number().min(-180).max(180), // latitude (y)
   ]),
 });
 
@@ -29,7 +29,7 @@ export const postSchema = z.object({
     .max(CAPTION_MAX_LENGTH, `Caption must be ${CAPTION_MAX_LENGTH} characters or less.`),
   // biome-ignore format: readability
   images: z
-    .array(z.object({ suburl: z.string(), location: pointSchema.omit({ type: true }) })) // R2 image URLs + location
+    .array(z.object({ suburl: z.string(), location: pointSchema })) // R2 image URLs + location
     .min(1, "At least one image is required."),
   // biome-ignore format: readability
   location: pointSchema, // centre
