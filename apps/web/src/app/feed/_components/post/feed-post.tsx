@@ -1,23 +1,29 @@
 import type { postSchema } from "@pinpoint/contracts";
+import { Avatar, AvatarFallback, AvatarImage } from "@pinpoint/shad-ui/components/avatar";
+import { cn } from "@pinpoint/shad-ui/lib/utils";
 import Image from "next/image";
 import type z from "zod";
 import UpvoteDownvote from "./upvote-downvote";
-export default function FeedPost({ data, userId }: { data: z.infer<typeof postSchema>; userId: string }) {
+export default function FeedPost({ data, className }: { data: z.infer<typeof postSchema>; className?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-5 bg-background-800 p-10">
+    <div className={cn("flex flex-col items-center justify-center gap-5 bg-background-800 p-10", className)}>
       <p>{data.title}</p>
       <div className="relative aspect-square w-full overflow-hidden border-5 border-background-700">
         <Image src="https://picsum.photos/seed/picsum/200/300" alt={data.title} fill className="object-cover" />
       </div>
       <div className="flex w-full justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           {/* TODO: Change SRC to R2 bucket URL */}
-          <div className="relative h-7 w-7 overflow-hidden rounded-full">
+          <Avatar>
+            <AvatarImage src={data.authorSnapshot?.image} alt={data.authorSnapshot?.name} />
+            <AvatarFallback>{data.authorSnapshot?.name.slice(0, 2)}</AvatarFallback>
+          </Avatar>
+          {/* <div className="relative h-7 w-7 overflow-hidden rounded-full">
             <Image src="https://picsum.photos/seed/picsum/200/300" alt={data.authorSnapshot?.name} fill className="object-cover" />
-          </div>
-          <span>{data.authorSnapshot?.name}</span>
+          </div> */}
+          <span className="truncate">{data.authorSnapshot?.name}</span>
         </div>
-        <UpvoteDownvote postId={data._id} upvotes={data.metrics.upvotes} downvotes={data.metrics.downvotes} userId={userId} />
+        <UpvoteDownvote postId={data._id} upvotes={data.metrics.upvotes} downvotes={data.metrics.downvotes} />
       </div>
     </div>
   );

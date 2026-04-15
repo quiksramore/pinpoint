@@ -50,17 +50,19 @@ export const voteRouter = {
         });
 
         if (existingVote) {
-          await existingVote.deleteOne();
+          const deleteResult = await existingVote.deleteOne();
 
-          await PostService.updateOne(
-            { _id: input.postId },
-            {
-              $inc: {
-                "metrics.upvotes": existingVote.voteValue === "UPVOTE" ? -1 : 0,
-                "metrics.downvotes": existingVote.voteValue === "DOWNVOTE" ? -1 : 0,
-              },
-            }
-          );
+          if (deleteResult.deletedCount === 1) {
+            await PostService.updateOne(
+              { _id: input.postId },
+              {
+                $inc: {
+                  "metrics.upvotes": existingVote.voteValue === "UPVOTE" ? -1 : 0,
+                  "metrics.downvotes": existingVote.voteValue === "DOWNVOTE" ? -1 : 0,
+                },
+              }
+            );
+          }
         }
 
         // insert new vote
@@ -101,13 +103,7 @@ export const voteRouter = {
       postId: input.postId,
     });
 
-    if (!voteDoc) {
-      throw NOT_FOUND({
-        data: {
-          message: `Vote from user ${context.user.id} for post ${input.postId} not found.`,
-        },
-      });
-    }
+    if (!voteDoc) return { success: false };
 
     if (voteDoc.authorId !== context.user.id) {
       throw FORBIDDEN({
