@@ -24,20 +24,14 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
   const queryClient = useQueryClient();
   const initialScore = (upvotes || 0) - (downvotes || 0);
   const voteQueryKey = webClientORPC.vote.getUserVote.queryKey({ input: { postId } });
-  const currentVoteQueryKey = ["post-current-vote", postId] as const;
   const scoreQueryKey = ["post-vote-score", postId] as const;
 
   const { data: voteData } = useQuery(
-    webClientORPC.vote.getUserVote.queryOptions({
-      input: { postId },
-    })
+    webClientORPC.vote.getUserVote.queryOptions({ input: { postId } })
   );
 
-  const { data: currentVote = null } = useQuery({
-    queryKey: currentVoteQueryKey,
-    queryFn: () => (voteData?.voteValue ?? null) as VoteValue | null,
-    initialData: (voteData?.voteValue ?? null) as VoteValue | null,
-  });
+  // Derive directly — no separate cache entry, no useEffect bridge
+  const currentVote = (voteData?.voteValue ?? null) as VoteValue | null;
 
   const { data: score = initialScore } = useQuery({
     queryKey: scoreQueryKey,
@@ -46,88 +40,59 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
   });
 
   useEffect(() => {
-    queryClient.setQueryData<VoteValue | null>(currentVoteQueryKey, voteData?.voteValue ?? null);
-  }, [queryClient, postId, voteData?.voteValue]);
-
-  // TODO investigate validity?
-  // const voteAddMutation = useMutation({
-  //   mutationFn: (voteValue: VoteValue) =>
-  //     webClientORPC.vote.addVote.call({
-  //       postId,
-  //       voteValue,
-  //     }),
-  // });
-
-  // const voteDeleteMutation = useMutation({
-  //   mutationFn: () => {
-  //     if (!voteId) {
-  //       throw new Error("Cannot delete vote without vote id");
-  //     }
-  //
-  //     return webClientORPC.vote.deleteVote.call({
-  //       postId,
-  //     });
-  //   },
-  // });
-
-  // const voteAddMutation = useMutation(webClientORPC.vote.addVote.mutationOptions());
+    queryClient.setQueryData<number>(scoreQueryKey, (existingScore) => existingScore ?? initialScore);
+  }, [queryClient, postId, initialScore]);
 
   const voteAddMutation = useMutation({
     ...webClientORPC.vote.addVote.mutationOptions(),
     onMutate: async (newVote) => {
-      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
       await queryClient.cancelQueries({ queryKey: voteQueryKey });
 
-      // Snapshot the previous value
-      const previousVote = queryClient.getQueryData<VoteValue | null>(currentVoteQueryKey) ?? null;
+      const previousVoteData = queryClient.getQueryData(voteQueryKey);
       const previousScore = queryClient.getQueryData<number>(scoreQueryKey) ?? initialScore;
 
-      // Optimistically update to the new value
-      queryClient.setQueryData<VoteValue | null>(currentVoteQueryKey, newVote.voteValue);
+      // Optimistically update voteQueryKey directly
+      queryClient.setQueryData(voteQueryKey, { voteValue: newVote.voteValue });
+      queryClient.setQueryData<number>(scoreQueryKey, previousScore + getScoreDelta(currentVote, newVote.voteValue));
 
-      queryClient.setQueryData<number>(scoreQueryKey, previousScore + getScoreDelta(previousVote, newVote.voteValue));
-
-      return { previousVote, previousScore };
+      return { previousVoteData, previousScore };
     },
     onError: (err, newVote, context) => {
-      // Rollback to the previous value on error
-      queryClient.setQueryData(currentVoteQueryKey, context?.previousVote ?? null);
+      queryClient.setQueryData(voteQueryKey, context?.previousVoteData);
       queryClient.setQueryData(scoreQueryKey, context?.previousScore ?? initialScore);
     },
     onSettled: () => {
-      // Always refetch after error or success to ensure synchronization
       queryClient.invalidateQueries({ queryKey: voteQueryKey });
     },
   });
-
-  // Repeat similar pattern for voteDeleteMutation (setting voteValue to null optimistically)
 
   const voteDeleteMutation = useMutation({
     ...webClientORPC.vote.deleteVote.mutationOptions(),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: voteQueryKey });
 
-      const previousVote = queryClient.getQueryData<VoteValue | null>(currentVoteQueryKey) ?? null;
+      const previousVoteData = queryClient.getQueryData(voteQueryKey);
       const previousScore = queryClient.getQueryData<number>(scoreQueryKey) ?? initialScore;
 
-      queryClient.setQueryData<VoteValue | null>(currentVoteQueryKey, null);
-      queryClient.setQueryData<number>(scoreQueryKey, previousScore + getScoreDelta(previousVote, null));
+      // Optimistically update voteQueryKey directly
+      queryClient.setQueryData(voteQueryKey, { voteValue: null });
+      queryClient.setQueryData<number>(scoreQueryKey, previousScore + getScoreDelta(currentVote, null));
 
-      return { previousVote, previousScore };
+      return { previousVoteData, previousScore };
     },
     onError: (err, variables, context) => {
-      queryClient.setQueryData(currentVoteQueryKey, context?.previousVote ?? null);
+      queryClient.setQueryData(voteQueryKey, context?.previousVoteData);
       queryClient.setQueryData(scoreQueryKey, context?.previousScore ?? initialScore);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: voteQueryKey });
     },
   });
-
+  
   useEffect(() => {
     queryClient.setQueryData<number>(scoreQueryKey, (existingScore) => existingScore ?? initialScore);
   }, [queryClient, postId, initialScore]);
-
+  
   const handleUpvote = async () => {
     if (voteDeleteMutation.isPending || voteAddMutation.isPending) return; // prevent multiple rapid clicks
     if (currentVote === "UPVOTE") {
@@ -135,11 +100,11 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
       if (!success) return;
       return;
     }
-
+    
     const success = await voteAddMutation.mutateAsync({ postId, voteValue: "UPVOTE" });
     if (!success) return;
   };
-
+  
   const handleDownvote = async () => {
     if (voteDeleteMutation.isPending || voteAddMutation.isPending) return; // prevent multiple rapid clicks
     if (currentVote === "DOWNVOTE") {
@@ -147,7 +112,7 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
       if (!success) return;
       return;
     }
-
+    
     const success = await voteAddMutation.mutateAsync({
       postId,
       voteValue: "DOWNVOTE",
@@ -163,7 +128,7 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
           await handleUpvote();
         }}
         className={cn("cursor-pointer", currentVote === "UPVOTE" ? "text-green-500" : "")}
-      />
+        />
       {score}
       <ChevronDown
         onClick={async (e) => {
@@ -175,3 +140,26 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
     </div>
   );
 }
+
+// TODO investigate validity?
+// const voteAddMutation = useMutation({
+//   mutationFn: (voteValue: VoteValue) =>
+//     webClientORPC.vote.addVote.call({
+//       postId,
+//       voteValue,
+//     }),
+// });
+
+// const voteDeleteMutation = useMutation({
+//   mutationFn: () => {
+//     if (!voteId) {
+//       throw new Error("Cannot delete vote without vote id");
+//     }
+//
+//     return webClientORPC.vote.deleteVote.call({
+//       postId,
+//     });
+//   },
+// });
+
+// const voteAddMutation = useMutation(webClientORPC.vote.addVote.mutationOptions());
