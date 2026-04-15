@@ -22,9 +22,9 @@ export function getStrongestCluster(points: z.infer<typeof pointSchema>[]) {
 }
 
 function getAverageDistance(points: z.infer<typeof pointSchema>[], center: z.infer<typeof pointSchema>): number {
-  const [cLng, cLat] = [center.longitude, center.latitude];
+  const [cLng, cLat] = center.coordinates;
 
-  const total = points.reduce((sum, p) => sum + distanceMeters(cLng, cLat, p.longitude, p.latitude), 0);
+  const total = points.reduce((sum, p) => sum + distanceMeters(cLng, cLat, p.coordinates[0], p.coordinates[1]), 0);
 
   return total / points.length;
 }
@@ -43,9 +43,9 @@ function getStrength(innerCluster: z.infer<typeof pointSchema>[], center: z.infe
 }
 
 function filterFinalCluster(points: z.infer<typeof pointSchema>[], center: z.infer<typeof pointSchema>, outerRadius: number) {
-  const [cLng, cLat] = [center.longitude, center.latitude];
+  const [cLng, cLat] = center.coordinates;
 
-  return points.filter((p) => distanceMeters(cLng, cLat, p.longitude, p.latitude) <= outerRadius);
+  return points.filter((p) => distanceMeters(cLng, cLat, p.coordinates[0], p.coordinates[1]) <= outerRadius);
 }
 
 // Returns the index of the strongest point, referring to points[] array
@@ -58,11 +58,11 @@ function findStrongestPoint(points: z.infer<typeof pointSchema>[]): number {
   const distanceMatrix: number[][] = points.map(() => []);
 
   // For each point, count how many other points are within the MAX_CLUSTER_DISTANCE_METERS and calculate the average distance to those points
-  points.forEach(({ longitude: long1, latitude: lat1 }, index) => {
+  points.forEach(({ coordinates: [long1, lat1] }, index) => {
     let pointsContained = 0;
     let totalDistance = 0;
 
-    points.forEach(({ longitude: long2, latitude: lat2 }, index2) => {
+    points.forEach(({ coordinates: [long2, lat2] }, index2) => {
       if (index === index2) return;
 
       // Only compute each pair once
@@ -91,11 +91,11 @@ function findStrongestPoint(points: z.infer<typeof pointSchema>[]): number {
 }
 
 function getInnerCluster(points: z.infer<typeof pointSchema>[], strongestIndex: number): z.infer<typeof pointSchema>[] {
-  const [centerLong, centerLat] = [points[strongestIndex]?.longitude || 0, points[strongestIndex]?.latitude || 0];
+  const [centerLong, centerLat] = points[strongestIndex]?.coordinates || [0, 0];
 
   // Filter points to include only those within MAX_CLUSTER_DISTANCE_METERS of the strongest point
   return points.filter((point) => {
-    const [long, lat] = [point.longitude, point.latitude];
+    const [long, lat] = point.coordinates;
     return distanceMeters(centerLong, centerLat, long, lat) <= MAX_CLUSTER_DISTANCE_METERS;
   });
 }
@@ -113,11 +113,11 @@ function distanceMeters(long1: number, lat1: number, long2: number, lat2: number
 }
 
 function calculateCentroid(points: z.infer<typeof pointSchema>[]): z.infer<typeof pointSchema> {
-  const [sumLng, sumLat] = points.reduce(([lng, lat], p) => [lng + p.longitude, lat + p.latitude], [0, 0]);
+  const [sumLng, sumLat] = points.reduce(([lng, lat], p) => [lng + p.coordinates[0], lat + p.coordinates[1]], [0, 0]);
   const centroidLng = sumLng / points.length;
   const centroidLat = sumLat / points.length;
 
-  return pointSchema.parse({ latitude: centroidLat, longitude: centroidLng });
+  return pointSchema.parse({ type: "Point", coordinates: [centroidLng, centroidLat] });
 }
 
 // TODO: exported for unit testing

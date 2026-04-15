@@ -79,9 +79,10 @@ export const postRouter = {
               });
             }
 
+            // TODO investigate why zod doesn't throw ts error when modifying invalid parse
             const location: z.infer<typeof pointSchema> = pointSchema.parse({
-              latitude,
-              longitude,
+              type: "Point",
+              coordinates: [longitude, latitude],
             });
 
             // upload image to R2

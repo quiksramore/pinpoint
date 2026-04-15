@@ -12,58 +12,58 @@ const testPoints: PointCluster[] = [
   {
     cluster: 1,
     points: [
-      { latitude: 37.00198, longitude: -122.05876 },
-      { latitude: 37.00208, longitude: -122.05833 },
-      { latitude: 37.00195, longitude: -122.05845 },
-      { latitude: 37.00169, longitude: -122.05899 },
-      { latitude: 37.00174, longitude: -122.0592 },
+      { type: "Point", coordinates: [37.001_98, -122.058_76] },
+      { type: "Point", coordinates: [37.002_08, -122.058_33] },
+      { type: "Point", coordinates: [37.001_95, -122.058_45] },
+      { type: "Point", coordinates: [37.001_69, -122.058_99] },
+      { type: "Point", coordinates: [37.001_74, -122.0592] },
     ],
   },
   {
     cluster: 2,
     points: [
-      { latitude: 37.00203, longitude: -122.05826 },
-      { latitude: 37.00202, longitude: -122.05837 },
-      { latitude: 37.0019, longitude: -122.05846 },
+      { type: "Point", coordinates: [37.002_03, -122.058_26] },
+      { type: "Point", coordinates: [37.002_02, -122.058_37] },
+      { type: "Point", coordinates: [37.0019, -122.058_46] },
     ],
   },
   {
     cluster: 3,
     points: [
-      { latitude: 37.00202, longitude: -122.05834 },
-      { latitude: 37.00193, longitude: -122.05852 },
+      { type: "Point", coordinates: [37.002_02, -122.058_34] },
+      { type: "Point", coordinates: [37.001_93, -122.058_52] },
     ],
   },
   {
     cluster: 4,
     points: [
-      { latitude: 37.00202, longitude: -122.05834 },
-      { latitude: 37.00193, longitude: -122.05852 },
-      { latitude: 36.9995, longitude: -122.06361 },
+      { type: "Point", coordinates: [37.002_02, -122.058_34] },
+      { type: "Point", coordinates: [37.001_93, -122.058_52] },
+      { type: "Point", coordinates: [36.9995, -122.063_61] },
     ],
   },
   {
     cluster: 5,
     points: [
-      { latitude: 37.00202, longitude: -122.05834 },
-      { latitude: 37.00193, longitude: -122.05852 },
-      { latitude: 37.00075, longitude: -122.06052 },
+      { type: "Point", coordinates: [37.002_02, -122.058_34] },
+      { type: "Point", coordinates: [37.001_93, -122.058_52] },
+      { type: "Point", coordinates: [37.000_75, -122.060_52] },
     ],
   },
   {
     cluster: 6,
     points: [
-      { latitude: 37.00197, longitude: -122.05839 },
-      { latitude: 37.00202, longitude: -122.05839 },
-      { latitude: 37.00199, longitude: -122.05848 },
+      { type: "Point", coordinates: [37.001_97, -122.058_39] },
+      { type: "Point", coordinates: [37.002_02, -122.058_39] },
+      { type: "Point", coordinates: [37.001_99, -122.058_48] },
     ],
   },
   {
     cluster: 7,
     points: [
-      { latitude: 37.00236, longitude: -122.05834 },
-      { latitude: 37.00196, longitude: -122.05927 },
-      { latitude: 37.00153, longitude: -122.05808 },
+      { type: "Point", coordinates: [37.002_36, -122.058_34] },
+      { type: "Point", coordinates: [37.001_96, -122.059_27] },
+      { type: "Point", coordinates: [37.001_53, -122.058_08] },
     ],
   },
 ];
