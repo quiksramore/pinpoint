@@ -27,7 +27,6 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
   const currentVoteQueryKey = ["post-current-vote", postId] as const;
   const scoreQueryKey = ["post-vote-score", postId] as const;
 
-  // TODO: create a useStore() for these states to ensure syncronization across components (e.g., post dialog + feed post)
   const { data: voteData } = useQuery(
     webClientORPC.vote.getUserVote.queryOptions({
       input: { postId },
@@ -126,7 +125,7 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
   });
 
   useEffect(() => {
-    queryClient.setQueryData<number>(scoreQueryKey, initialScore);
+    queryClient.setQueryData<number>(scoreQueryKey, (existingScore) => existingScore ?? initialScore);
   }, [queryClient, postId, initialScore]);
 
   const handleUpvote = async () => {
