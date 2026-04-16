@@ -21,7 +21,17 @@ function getScoreDelta(previousVote: VoteValue | null, nextVote: VoteValue | nul
 }
 
 // TODO check optimistic approach
-export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId: string; upvotes?: number; downvotes?: number }) {
+export default function UpvoteDownvote({
+  postId,
+  upvotes,
+  downvotes,
+  className,
+}: {
+  postId: string;
+  upvotes?: number;
+  downvotes?: number;
+  className?: string;
+}) {
   const queryClient = useQueryClient();
   const initialScore = (upvotes || 0) - (downvotes || 0);
   const voteQueryKey = webClientORPC.vote.getUserVote.queryKey({ input: { postId } });
@@ -120,7 +130,7 @@ export default function UpvoteDownvote({ postId, upvotes, downvotes }: { postId:
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className={cn("flex items-center gap-2 rounded-full p-2", className)}>
       <ChevronUp
         onClick={async (e) => {
           e.stopPropagation(); // prevent event bubbling to parent elements (e.g., opening post dialog)

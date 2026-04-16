@@ -20,7 +20,7 @@ export default function FeedPost({ data, className }: { data: z.infer<typeof pos
           </Avatar>
           <span className="truncate">{data.authorSnapshot?.name}</span>
         </div>
-        <UpvoteDownvote postId={data._id} upvotes={data.metrics.upvotes} downvotes={data.metrics.downvotes} />
+        <UpvoteDownvote className="bg-background-900/40" postId={data._id} upvotes={data.metrics.upvotes} downvotes={data.metrics.downvotes} />
       </div>
     </div>
   );

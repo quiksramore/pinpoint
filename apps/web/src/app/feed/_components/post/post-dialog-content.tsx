@@ -1,12 +1,19 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@pinpoint/shad-ui/components/avatar";
+import { Button } from "@pinpoint/shad-ui/components/button";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@pinpoint/shad-ui/components/carousel";
 import { DialogDescription, DialogHeader, DialogTitle } from "@pinpoint/shad-ui/components/dialog";
 import Image from "next/image";
+import { useState } from "react";
 import type z from "zod";
 import type { postSchema } from "../../../../../../../packages/contracts/src/http/posts/post-schema";
 import UpvoteDownvote from "./upvote-downvote";
 
 export default function PostDialogContent({ data }: { data: z.infer<typeof postSchema> }) {
+  const CAPTION_PREVIEW_LENGTH = 50;
+  const [expanded, setExpanded] = useState(false);
+  const isLong = data.caption.length > CAPTION_PREVIEW_LENGTH;
+
+  const displayedText = !expanded && isLong ? `${data.caption.slice(0, CAPTION_PREVIEW_LENGTH)}...` : data.caption;
   return (
     <div className="space-y-4">
       <DialogHeader className="text-center sm:text-center">
@@ -36,12 +43,26 @@ export default function PostDialogContent({ data }: { data: z.infer<typeof postS
           </Avatar>
           <span className="truncate">{data.authorSnapshot?.name}</span>
         </div>
-        <UpvoteDownvote postId={data._id} upvotes={data.metrics.upvotes} downvotes={data.metrics.downvotes} />
+        <UpvoteDownvote className="bg-background-800" postId={data._id} upvotes={data.metrics.upvotes} downvotes={data.metrics.downvotes} />
       </div>
 
       {/* <Separator /> */}
+      <div>
+        <DialogTitle className="text-sm">Caption</DialogTitle>
+        <div className="flex flex-wrap items-end gap-1">
+          <DialogDescription className="whitespace-normal break-words break-all text-foreground">{displayedText}</DialogDescription>
 
-      <DialogDescription className="text-foreground">{data.caption}</DialogDescription>
+          {isLong && (
+            <Button
+              variant="link"
+              onClick={() => setExpanded((v) => !v)}
+              className="h-auto cursor-pointer p-0 text-blue-500 text-sm hover:underline"
+            >
+              {expanded ? "Show less" : "Show more"}
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
