@@ -3,7 +3,7 @@ import { uiCreatePostFormSchema } from "@pinpoint/contracts";
 import { Button } from "@pinpoint/shad-ui/components/button";
 import { cn } from "@pinpoint/shad-ui/lib/utils";
 import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { z } from "zod";
 import { webClientORPC } from "../../../../lib/orpc-web-client";
@@ -44,16 +44,17 @@ export const { useAppForm } = createFormHook({
   formComponents: {},
 });
 
-export default function CreatePostForm() {
+export default function CreatePostForm({ onSuccess }: { onSuccess?: () => void }) {
   const [imagesServerError, setImagesServerError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
   const createPost = useMutation(
     webClientORPC.posts.createPost.mutationOptions({
-      // TODO invalidate?
-      // onSuccess: async (data) => {
-      //   await queryClient.invalidateQueries({
-      //     queryKey: webClientORPC.post.getPosts.queryOptions({ input: { authorId: userId } }).queryKey,
-      //   });
-      // },
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: webClientORPC.posts.getAllPosts.queryOptions({ input: {} }).queryKey,
+        });
+      },
     })
   );
 
@@ -71,6 +72,7 @@ export default function CreatePostForm() {
 
       try {
         await createPost.mutateAsync(value);
+        onSuccess?.();
       } catch (error) {
         setImagesServerError(getErrorMessage(error));
       }
@@ -99,9 +101,6 @@ export default function CreatePostForm() {
           </Button>
         )}
       </form.Subscribe>
-      {/* <form.Subscribe>
-        <pre>{JSON.stringify(form.state, null, 2)}</pre>
-      </form.Subscribe> */}
     </form>
   );
 }
