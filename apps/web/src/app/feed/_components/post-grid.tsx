@@ -15,13 +15,12 @@ export default function PostGrid() {
   const userId = authData?.user?.id;
 
   return (
-    <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
       {/* TODO: replace with skeleton posts */}
       {isLoading && <p>Loading...</p>}
       {error && <p>Error loading posts: {error.message}</p>}
       {data?.map((post) => (
         <PostDialog key={post._id} data={post} />
-        // <FeedPost key={post._id} data={post} />
       ))}
     </div>
   );
