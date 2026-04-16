@@ -12,7 +12,7 @@ export default function PostDialog({ data }: { data: z.infer<typeof postSchema> 
           <FeedPost data={data} />
         </div>
       </DialogTrigger>
-      <DialogContent className="mx-auto max-h-[75vh] w-full max-w-2xl">
+      <DialogContent className="mx-auto w-full max-w-2xl">
         <PostDialogContent data={data} />
       </DialogContent>
     </Dialog>
