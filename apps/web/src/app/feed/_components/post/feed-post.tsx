@@ -18,9 +18,6 @@ export default function FeedPost({ data, className }: { data: z.infer<typeof pos
             <AvatarImage src={data.authorSnapshot?.image} alt={data.authorSnapshot?.name} />
             <AvatarFallback>{data.authorSnapshot?.name.slice(0, 2)}</AvatarFallback>
           </Avatar>
-          {/* <div className="relative h-7 w-7 overflow-hidden rounded-full">
-            <Image src="https://picsum.photos/seed/picsum/200/300" alt={data.authorSnapshot?.name} fill className="object-cover" />
-          </div> */}
           <span className="truncate">{data.authorSnapshot?.name}</span>
         </div>
         <UpvoteDownvote postId={data._id} upvotes={data.metrics.upvotes} downvotes={data.metrics.downvotes} />
