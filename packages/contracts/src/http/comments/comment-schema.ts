@@ -19,6 +19,6 @@ export const commentSchema = z.object({
 
 export const commentLikeSchema = z.object({
   _id: z.uuidv7(),
-  authorId: z.string(), // better-auth user id
+  authorId: z.string(), // better-auth user id // TODO rename from authorId (confusing)
   commentId: z.uuidv7(),
 }); // { commentId: 1, userId: 1 }

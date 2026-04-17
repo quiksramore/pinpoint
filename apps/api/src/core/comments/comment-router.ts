@@ -1,12 +1,31 @@
 import { commentLikeSchema, commentSchema } from "@pinpoint/contracts";
 import { v7 as uuidv7 } from "uuid";
 import type { z } from "zod";
-import { protectedProcedure } from "../../libs/orpc-procedures";
+import { protectedProcedure, publicProcedure } from "../../libs/orpc-procedures";
 import { PostService } from "../post/post-service";
 import { CommentLikeService } from "./comment-like-service";
 import { CommentService } from "./comment-service";
 
 export const commentRouter = {
+  getComments: publicProcedure.comment.getComments.handler(async ({ input, context }) => {
+    const commentDocs = await CommentService.find({ parentPostId: input.postId }).sort({ createdAt: -1 }).lean();
+
+    if (!context || !context.user) return commentDocs.map((doc) => ({ ...doc, hasLiked: false }));
+
+    const commentIds = commentDocs.map((doc) => doc._id);
+
+    const likes = await CommentLikeService.find({
+      commentId: { $in: commentIds },
+      authorId: context.user.id,
+    });
+
+    const likeMap = new Map(likes.map((like) => [like.commentId.toString(), true]));
+
+    return commentDocs.map((doc) => ({
+      ...doc,
+      hasLiked: !!likeMap.get(doc._id.toString()),
+    }));
+  }),
   addComment: protectedProcedure.comment.addComment.handler(async ({ input, context, errors: { INTERNAL_SERVER_ERROR, NOT_FOUND } }) => {
     const postDocument = await PostService.findById(input.parentPostId);
     if (!postDocument) {
