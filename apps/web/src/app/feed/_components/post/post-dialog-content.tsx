@@ -5,10 +5,12 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { DialogDescription, DialogHeader, DialogTitle } from "@pinpoint/shad-ui/components/dialog";
 import { ScrollArea } from "@pinpoint/shad-ui/components/scroll-area";
 import { Separator } from "@pinpoint/shad-ui/components/separator";
+import { Ellipsis, Map } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import type z from "zod";
 import { env } from "../../../../env";
+import { authClientWeb } from "../../../../lib/auth-client-web";
 import CommentsDrawer from "./comments-drawer";
 import UpvoteDownvote from "./upvote-downvote";
 
@@ -16,14 +18,22 @@ export default function PostDialogContent({ postData }: { postData: z.infer<type
   const CAPTION_PREVIEW_LENGTH = 50;
   const [expanded, setExpanded] = useState(false);
   const isLong = postData.caption.length > CAPTION_PREVIEW_LENGTH;
-
   const displayedText = !expanded && isLong ? `${postData.caption.slice(0, CAPTION_PREVIEW_LENGTH)}...` : postData.caption;
+
+  const { data: authData } = authClientWeb.useSession();
+  const userId = authData?.user?.id;
+
   return (
     <ScrollArea className="max-h-[75vh] p-3">
       <div className="relative space-y-4">
         <DialogHeader className="text-center sm:text-center">
-          <DialogTitle>{postData.title}</DialogTitle>
+          <div className="flex items-center justify-center gap-2">
+            <DialogTitle>{postData.title}</DialogTitle>
+            <Map />
+          </div>
         </DialogHeader>
+
+        {userId === postData.authorId && <Ellipsis className="absolute top-0 left-0" />}
 
         <Carousel className="group relative">
           <CarouselContent>
