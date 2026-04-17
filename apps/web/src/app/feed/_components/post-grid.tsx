@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { authClientWeb } from "../../../lib/auth-client-web";
 import { webClientORPC } from "../../../lib/orpc-web-client";
 import PostDialog from "./post/post-dialog";
 
@@ -32,8 +31,6 @@ export default function PostGrid() {
       input: {},
     })
   );
-  const { data: authData, isPending } = authClientWeb.useSession();
-  const userId = authData?.user?.id;
 
   return (
     <div className="grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
