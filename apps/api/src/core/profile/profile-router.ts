@@ -97,19 +97,19 @@ export const profileRouter = {
 
   editProfile: protectedProcedure.profile.editProfile.handler(
     async ({ input, context, errors: { INTERNAL_SERVER_ERROR, NOT_FOUND, FORBIDDEN, UNPROCESSABLE_CONTENT } }) => {
-      if (context.user.id !== input._id) {
+      if (context.user.id !== input.id) {
         throw FORBIDDEN({
           data: {
             message: "Forbidden.",
           },
         });
       }
-      const profile = await ProfileService.findById(input._id).select({ _id: 1 }).lean();
+      const profile = await ProfileService.findById(input.id).lean();
 
       if (!profile) {
         throw NOT_FOUND({
           data: {
-            message: `Profile with id ${input._id} not found.`,
+            message: `Profile with id ${input.id} not found.`,
           },
         });
       }
@@ -133,12 +133,12 @@ export const profileRouter = {
       }
 
       try {
-        await ProfileService.updateOne({ _id: input._id }, { $set: updatedProfile });
+        await ProfileService.updateOne({ _id: input.id }, { $set: updatedProfile });
         return { success: true };
       } catch (error) {
         throw INTERNAL_SERVER_ERROR({
           data: {
-            message: `DB failed to update profile with id ${input._id}. ${error}`,
+            message: `DB failed to update profile with id ${input.id}. ${error}`,
           },
         });
       }
@@ -152,6 +152,20 @@ export const profileRouter = {
       throw NOT_FOUND({
         data: {
           message: `Profile with id ${input.id} not found.`,
+        },
+      });
+    }
+
+    return profile;
+  }),
+
+  getProfileByUsername: publicProcedure.profile.getProfileByUsername.handler(async ({ input, errors: { NOT_FOUND } }) => {
+    const profile = await ProfileService.findOne({ username: input.username }).lean();
+
+    if (!profile) {
+      throw NOT_FOUND({
+        data: {
+          message: `Profile with username ${input.username} not found.`,
         },
       });
     }
