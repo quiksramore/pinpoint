@@ -18,9 +18,18 @@ export default function FeedPost({ postData, className }: { postData: z.infer<ty
       <div className="flex w-full min-w-0 items-center justify-between gap-2">
         <div className="flex min-w-0 gap-2">
           <Avatar className="shrink-0 border border-background-700">
+    <div
+      className={cn("relative flex flex-col items-center justify-center gap-5 rounded-md bg-background p-10 drop-shadow-lg", className)}
+      style={{ backgroundColor: getPastelColor(postData._id) }}
+    >
+      <Image src="/pushpin.png" alt="pin" width={40} height={40} className="absolute top-2" />
+      <div className="flex w-full min-w-0 items-center justify-between gap-2">
+        <div className="flex min-w-0 gap-2">
+          <Avatar className="shrink-0 border border-background-700">
             <AvatarImage src={postData.authorSnapshot?.image} alt={postData.authorSnapshot?.name} />
             <AvatarFallback>{postData.authorSnapshot?.name?.slice(0, 2)}</AvatarFallback>
           </Avatar>
+          <span className="truncate font-bold text-xl">{postData.authorSnapshot?.name}</span>
           <span className="truncate font-bold text-xl">{postData.authorSnapshot?.name}</span>
         </div>
         <span className="text-foreground-500">{getTimeAgo(postData.createdAt)}</span>
