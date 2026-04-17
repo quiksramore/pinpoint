@@ -5,13 +5,14 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { DialogDescription, DialogHeader, DialogTitle } from "@pinpoint/shad-ui/components/dialog";
 import { ScrollArea } from "@pinpoint/shad-ui/components/scroll-area";
 import { Separator } from "@pinpoint/shad-ui/components/separator";
-import { Ellipsis, Map } from "lucide-react";
+import { Map } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import type z from "zod";
 import { env } from "../../../../env";
 import { authClientWeb } from "../../../../lib/auth-client-web";
 import CommentsDrawer from "./comments-drawer";
+import PostOptionsDropdown from "./post-options-dropdown";
 import UpvoteDownvote from "./upvote-downvote";
 
 export default function PostDialogContent({ postData }: { postData: z.infer<typeof contextfulPostSchema> }) {
@@ -33,7 +34,7 @@ export default function PostDialogContent({ postData }: { postData: z.infer<type
           </div>
         </DialogHeader>
 
-        {userId === postData.authorId && <Ellipsis className="absolute top-0 left-0" />}
+        {userId === postData.authorId && <PostOptionsDropdown postId={postData._id} className="absolute top-0 left-0 cursor-pointer" />}
 
         <Carousel className="group relative">
           <CarouselContent>
