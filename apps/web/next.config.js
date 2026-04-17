@@ -6,7 +6,7 @@ const nextConfig = {
       { protocol: "https", hostname: "cdn.pinpoint.app" },
       {
         protocol: "https",
-        hostname: "picsum.photos", // TODO delete this when no longer needed
+        hostname: "pub-a637d57390cb4c88913a2f52961afeb2.r2.dev", // TODO delete this when no longer needed
       },
     ],
   },
