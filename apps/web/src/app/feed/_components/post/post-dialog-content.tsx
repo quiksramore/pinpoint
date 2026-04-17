@@ -42,7 +42,7 @@ export default function PostDialogContent({ postData }: { postData: z.infer<type
         <div className="flex min-w-0 items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
             {/* TODO: Change SRC to R2 bucket URL */}
-            <Avatar>
+            <Avatar className="border border-background-700">
               <AvatarImage src={postData.authorSnapshot?.image} alt={postData.authorSnapshot?.name} />
               <AvatarFallback>{postData.authorSnapshot?.name.slice(0, 2)}</AvatarFallback>
             </Avatar>
