@@ -12,7 +12,7 @@ export const pointSchema = z.object({
   ]),
 });
 
-export const postSchema = z.object({
+export const postSchema = z.strictObject({
   _id: z.uuidv7(),
   // biome-ignore format: readability
   authorId: z.string(), // better-auth user id

@@ -1,6 +1,6 @@
 import { oc } from "@orpc/contract";
 import z from "zod";
-import { profileSchema } from "./profile-schema";
+import { profileSchema, uiEditProfileFormSchema } from "./profile-schema";
 
 export const profileContract = {
   createProfile: oc
@@ -72,20 +72,7 @@ export const profileContract = {
       method: "POST",
       description: "Edit a user's profile information",
     })
-    .input(
-      // TODO: how to input pin information (currently using uuid of pins??)
-      z
-        .object({
-          _id: profileSchema.shape._id,
-          username: profileSchema.shape.username.optional(),
-          bio: profileSchema.shape.bio.optional(),
-          location: profileSchema.shape.location.optional(),
-          // pins: profileSchema.shape.pins.optional(),
-        })
-        .extend({
-          pins: z.array(z.uuidv7()).optional(),
-        })
-    )
+    .input(uiEditProfileFormSchema.extend({ id: profileSchema.shape._id }))
     .output(
       z.object({
         success: z.boolean(),
@@ -122,6 +109,30 @@ export const profileContract = {
     .input(
       z.object({
         id: profileSchema.shape._id,
+      })
+    )
+    .output(profileSchema)
+    .errors({
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
+  getProfileByUsername: oc
+    .route({
+      method: "GET",
+      description: "Get a user's profile information by username",
+    })
+    .input(
+      z.object({
+        username: profileSchema.shape.username,
       })
     )
     .output(profileSchema)
