@@ -4,6 +4,7 @@ import { Button } from "@pinpoint/shad-ui/components/button";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@pinpoint/shad-ui/components/carousel";
 import { DialogDescription, DialogHeader, DialogTitle } from "@pinpoint/shad-ui/components/dialog";
 import { ScrollArea } from "@pinpoint/shad-ui/components/scroll-area";
+import { Separator } from "@pinpoint/shad-ui/components/separator";
 import Image from "next/image";
 import { useState } from "react";
 import type z from "zod";
@@ -59,7 +60,7 @@ export default function PostDialogContent({ data }: { data: PostDialogData }) {
           />
         </div>
 
-        {/* <Separator /> */}
+        <Separator />
         <div>
           <DialogTitle className="text-sm">Caption</DialogTitle>
           <div className="flex flex-wrap items-end gap-1">

@@ -2,23 +2,12 @@ import type { voteSchema } from "@pinpoint/contracts";
 import { cn } from "@pinpoint/shad-ui/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import type { z } from "zod";
 import { webClientORPC } from "../../../../lib/orpc-web-client";
+import { useVoteStore } from "./vote-store";
 
 type VoteValue = z.infer<typeof voteSchema>["voteValue"];
-
-function getScoreDelta(previousVote: VoteValue | null, nextVote: VoteValue | null) {
-  if (previousVote === nextVote) return 0;
-  if (previousVote === null && nextVote === "UPVOTE") return 1;
-  if (previousVote === null && nextVote === "DOWNVOTE") return -1;
-  if (previousVote === "UPVOTE" && nextVote === null) return -1;
-  if (previousVote === "DOWNVOTE" && nextVote === null) return 1;
-  if (previousVote === "UPVOTE" && nextVote === "DOWNVOTE") return -2;
-  if (previousVote === "DOWNVOTE" && nextVote === "UPVOTE") return 2;
-
-  return 0;
-}
 
 // TODO check optimistic approach
 export default function UpvoteDownvote({
@@ -36,16 +25,21 @@ export default function UpvoteDownvote({
 }) {
   const queryClient = useQueryClient();
   const initialScore = (upvotes || 0) - (downvotes || 0);
-  const [currentVote, setCurrentVote] = useState<VoteValue | null>(initialVote);
-  const [score, setScore] = useState(initialScore);
+  const ensurePost = useVoteStore((state) => state.ensurePost);
+  const setFromServer = useVoteStore((state) => state.setFromServer);
+  const applyOptimistic = useVoteStore((state) => state.applyOptimistic);
+  const rollback = useVoteStore((state) => state.rollback);
+  const voteState = useVoteStore((state) => state.byPostId[postId]);
+  const currentVote = voteState?.currentVote ?? initialVote;
+  const score = voteState?.score ?? initialScore;
 
   useEffect(() => {
-    setCurrentVote(initialVote);
-  }, [initialVote]);
+    ensurePost(postId, initialVote, initialScore);
+  }, [ensurePost, postId, initialVote, initialScore]);
 
   useEffect(() => {
-    setScore(initialScore);
-  }, [initialScore]);
+    setFromServer(postId, initialVote, initialScore);
+  }, [setFromServer, postId, initialVote, initialScore]);
 
   const voteAddMutation = useMutation({
     ...webClientORPC.vote.addVote.mutationOptions(),
@@ -64,17 +58,12 @@ export default function UpvoteDownvote({
   const applyVoteChange = async (nextVote: VoteValue | null) => {
     if (voteDeleteMutation.isPending || voteAddMutation.isPending) return;
 
-    const previousVote = currentVote;
-    const previousScore = score;
-
-    setCurrentVote(nextVote);
-    setScore(previousScore + getScoreDelta(previousVote, nextVote));
+    const previous = applyOptimistic(postId, nextVote);
 
     if (nextVote === null) {
       const response = await voteDeleteMutation.mutateAsync({ postId });
       if (!response.success) {
-        setCurrentVote(previousVote);
-        setScore(previousScore);
+        rollback(postId, previous);
       }
       return;
     }
@@ -82,8 +71,7 @@ export default function UpvoteDownvote({
     try {
       await voteAddMutation.mutateAsync({ postId, voteValue: nextVote });
     } catch {
-      setCurrentVote(previousVote);
-      setScore(previousScore);
+      rollback(postId, previous);
     }
   };
 
