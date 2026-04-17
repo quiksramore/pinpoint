@@ -5,8 +5,23 @@ import { Map } from "lucide-react";
 import Image from "next/image";
 import type z from "zod";
 import { env } from "../../../../env";
-import { getPastelColor, getTimeAgo } from "../post-grid";
+import { getPastelColor } from "../post-grid";
 import UpvoteDownvote from "./upvote-downvote";
+
+export function getTimeAgo(date: Date) {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 60) return `${seconds}s ago`;
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  return `${days}d ago`;
+}
 
 export default function FeedPost({ postData, className }: { postData: z.infer<typeof contextfulPostSchema>; className?: string }) {
   return (
