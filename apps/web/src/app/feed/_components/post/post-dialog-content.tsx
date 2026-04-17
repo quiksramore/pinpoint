@@ -17,15 +17,14 @@ export default function PostDialogContent({ postData }: { postData: z.infer<type
 
   const displayedText = !expanded && isLong ? `${postData.caption.slice(0, CAPTION_PREVIEW_LENGTH)}...` : postData.caption;
   return (
-    <ScrollArea className="max-h-[75vh]">
+    <ScrollArea className="max-h-[75vh] p-3">
       <div className="space-y-4">
         <DialogHeader className="text-center sm:text-center">
           <DialogTitle>{postData.title}</DialogTitle>
         </DialogHeader>
 
-        <Carousel className="mx-12">
+        <Carousel className="group relative">
           <CarouselContent>
-            {/* Map from data.images and set correct src */}
             {Array.from({ length: 5 }).map((_, index) => (
               <CarouselItem key={index} className="basis-full">
                 <div className="relative aspect-square w-full overflow-hidden rounded-md border border-background-700">
@@ -34,8 +33,10 @@ export default function PostDialogContent({ postData }: { postData: z.infer<type
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="cursor-pointer" />
-          <CarouselNext className="cursor-pointer" />
+          <CarouselPrevious className="left-2 cursor-pointer opacity-0 transition-opacity disabled:opacity-0 group-hover:opacity-100" />
+          <CarouselNext className="right-2 cursor-pointer opacity-0 transition-opacity disabled:opacity-0 group-hover:opacity-100" />
+          {/* TODO: replace with actual values */}
+          <div className="absolute right-2 bottom-2 rounded-md bg-black/50 px-2 py-0.5 text-white text-xs">1/4</div>
         </Carousel>
         <div className="flex min-w-0 items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
