@@ -87,7 +87,7 @@ export default function PostDialogContent({ postData }: { postData: z.infer<type
             <span className="truncate">{postData.authorSnapshot?.name}</span>
           </div>
           <div className="flex items-center gap-2">
-            <CommentsDrawer parentPostID={postData._id} />
+            <CommentsDrawer parentPostID={postData._id} authData={authData} />
             <UpvoteDownvote
               className="bg-background-800"
               postId={postData._id}
