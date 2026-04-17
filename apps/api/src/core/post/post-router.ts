@@ -283,7 +283,7 @@ export const postRouter = {
 
     return documents.map((doc) => ({
       ...doc,
-      hasVoted: !!voteMap.get(doc._id.toString()),
+      vote: voteMap.get(doc._id.toString()),
     }));
   }),
 };

@@ -17,6 +17,11 @@ export const commentSchema = z.object({
   createdAt: z.coerce.date(),
 });
 
+// TODO potentially merge into `commentSchema` since `hasLiked` is required.
+export const contextfulCommentSchema = commentSchema.extend({
+  hasLiked: z.boolean(),
+});
+
 export const commentLikeSchema = z.object({
   _id: z.uuidv7(),
   authorId: z.string(), // better-auth user id // TODO rename from authorId (confusing)
