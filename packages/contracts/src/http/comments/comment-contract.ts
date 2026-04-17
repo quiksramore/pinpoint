@@ -18,8 +18,8 @@ export const commentContract = {
 
   addComment: oc
     .route({
-      method: "DELETE",
-      description: "Delete a comment",
+      method: "POST",
+      description: "Add a comment",
     })
     .input(
       commentSchema.pick({
