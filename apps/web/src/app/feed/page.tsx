@@ -4,7 +4,7 @@ import PostGrid from "./_components/post-grid";
 
 export default function Page() {
   return (
-    <main className="min-h-screen bg-background-900">
+    <main className="min-h-screen bg-background-800">
       <Header defaultValue="feed" />
       <CreatePostDialog />
       <PostGrid />
