@@ -1,10 +1,15 @@
+import type { voteSchema } from "@pinpoint/contracts";
 import { Dialog, DialogContent, DialogTrigger } from "@pinpoint/shad-ui/components/dialog";
 import type z from "zod";
 import type { postSchema } from "../../../../../../../packages/contracts/src/http/posts/post-schema";
 import FeedPost from "./feed-post";
 import PostDialogContent from "./post-dialog-content";
 
-export default function PostDialog({ data }: { data: z.infer<typeof postSchema> }) {
+type PostDialogData = z.infer<typeof postSchema> & {
+  vote?: z.infer<typeof voteSchema>["voteValue"];
+};
+
+export default function PostDialog({ data }: { data: PostDialogData }) {
   return (
     <Dialog>
       <DialogTrigger asChild>

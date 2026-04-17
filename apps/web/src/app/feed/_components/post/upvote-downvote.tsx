@@ -1,8 +1,8 @@
 import type { voteSchema } from "@pinpoint/contracts";
 import { cn } from "@pinpoint/shad-ui/lib/utils";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { z } from "zod";
 import { webClientORPC } from "../../../../lib/orpc-web-client";
 
@@ -25,108 +25,84 @@ export default function UpvoteDownvote({
   postId,
   upvotes,
   downvotes,
+  initialVote = null,
   className,
 }: {
   postId: string;
   upvotes?: number;
   downvotes?: number;
+  initialVote?: VoteValue | null;
   className?: string;
 }) {
   const queryClient = useQueryClient();
   const initialScore = (upvotes || 0) - (downvotes || 0);
-  const voteQueryKey = webClientORPC.vote.getUserVote.queryKey({ input: { postId } });
-  const scoreQueryKey = ["post-vote-score", postId] as const;
-
-  const { data: voteData } = useQuery(webClientORPC.vote.getUserVote.queryOptions({ input: { postId } }));
-
-  // Derive directly — no separate cache entry, no useEffect bridge
-  const currentVote = (voteData?.voteValue ?? null) as VoteValue | null;
-
-  const { data: score = initialScore } = useQuery({
-    queryKey: scoreQueryKey,
-    queryFn: () => initialScore,
-    initialData: initialScore,
-  });
+  const [currentVote, setCurrentVote] = useState<VoteValue | null>(initialVote);
+  const [score, setScore] = useState(initialScore);
 
   useEffect(() => {
-    queryClient.setQueryData<number>(scoreQueryKey, (existingScore) => existingScore ?? initialScore);
-  }, [queryClient, postId, initialScore]);
+    setCurrentVote(initialVote);
+  }, [initialVote]);
+
+  useEffect(() => {
+    setScore(initialScore);
+  }, [initialScore]);
 
   const voteAddMutation = useMutation({
     ...webClientORPC.vote.addVote.mutationOptions(),
-    onMutate: async (newVote) => {
-      await queryClient.cancelQueries({ queryKey: voteQueryKey });
-
-      const previousVoteData = queryClient.getQueryData(voteQueryKey);
-      const previousScore = queryClient.getQueryData<number>(scoreQueryKey) ?? initialScore;
-
-      // Optimistically update voteQueryKey directly
-      queryClient.setQueryData(voteQueryKey, { voteValue: newVote.voteValue });
-      queryClient.setQueryData<number>(scoreQueryKey, previousScore + getScoreDelta(currentVote, newVote.voteValue));
-
-      return { previousVoteData, previousScore };
-    },
-    onError: (err, newVote, context) => {
-      queryClient.setQueryData(voteQueryKey, context?.previousVoteData);
-      queryClient.setQueryData(scoreQueryKey, context?.previousScore ?? initialScore);
-    },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: voteQueryKey });
+      queryClient.invalidateQueries({ queryKey: webClientORPC.posts.getAllPosts.queryOptions({ input: {} }).queryKey });
     },
   });
 
   const voteDeleteMutation = useMutation({
     ...webClientORPC.vote.deleteVote.mutationOptions(),
-    onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: voteQueryKey });
-
-      const previousVoteData = queryClient.getQueryData(voteQueryKey);
-      const previousScore = queryClient.getQueryData<number>(scoreQueryKey) ?? initialScore;
-
-      // Optimistically update voteQueryKey directly
-      queryClient.setQueryData(voteQueryKey, { voteValue: null });
-      queryClient.setQueryData<number>(scoreQueryKey, previousScore + getScoreDelta(currentVote, null));
-
-      return { previousVoteData, previousScore };
-    },
-    onError: (err, variables, context) => {
-      queryClient.setQueryData(voteQueryKey, context?.previousVoteData);
-      queryClient.setQueryData(scoreQueryKey, context?.previousScore ?? initialScore);
-    },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: voteQueryKey });
+      queryClient.invalidateQueries({ queryKey: webClientORPC.posts.getAllPosts.queryOptions({ input: {} }).queryKey });
     },
   });
 
-  useEffect(() => {
-    queryClient.setQueryData<number>(scoreQueryKey, (existingScore) => existingScore ?? initialScore);
-  }, [queryClient, postId, initialScore]);
+  const applyVoteChange = async (nextVote: VoteValue | null) => {
+    if (voteDeleteMutation.isPending || voteAddMutation.isPending) return;
 
-  const handleUpvote = async () => {
-    if (voteDeleteMutation.isPending || voteAddMutation.isPending) return; // prevent multiple rapid clicks
-    if (currentVote === "UPVOTE") {
-      const { success } = await voteDeleteMutation.mutateAsync({ postId });
-      if (!success) return;
+    const previousVote = currentVote;
+    const previousScore = score;
+
+    setCurrentVote(nextVote);
+    setScore(previousScore + getScoreDelta(previousVote, nextVote));
+
+    if (nextVote === null) {
+      const response = await voteDeleteMutation.mutateAsync({ postId });
+      if (!response.success) {
+        setCurrentVote(previousVote);
+        setScore(previousScore);
+      }
       return;
     }
 
-    const success = await voteAddMutation.mutateAsync({ postId, voteValue: "UPVOTE" });
-    if (!success) return;
+    try {
+      await voteAddMutation.mutateAsync({ postId, voteValue: nextVote });
+    } catch {
+      setCurrentVote(previousVote);
+      setScore(previousScore);
+    }
+  };
+
+  const handleUpvote = async () => {
+    if (currentVote === "UPVOTE") {
+      await applyVoteChange(null);
+      return;
+    }
+
+    await applyVoteChange("UPVOTE");
   };
 
   const handleDownvote = async () => {
-    if (voteDeleteMutation.isPending || voteAddMutation.isPending) return; // prevent multiple rapid clicks
     if (currentVote === "DOWNVOTE") {
-      const { success } = await voteDeleteMutation.mutateAsync({ postId });
-      if (!success) return;
+      await applyVoteChange(null);
       return;
     }
 
-    const success = await voteAddMutation.mutateAsync({
-      postId,
-      voteValue: "DOWNVOTE",
-    });
-    if (!success) return;
+    await applyVoteChange("DOWNVOTE");
   };
 
   return (

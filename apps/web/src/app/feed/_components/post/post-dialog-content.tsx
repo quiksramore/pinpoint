@@ -1,3 +1,4 @@
+import type { voteSchema } from "@pinpoint/contracts";
 import { Avatar, AvatarFallback, AvatarImage } from "@pinpoint/shad-ui/components/avatar";
 import { Button } from "@pinpoint/shad-ui/components/button";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@pinpoint/shad-ui/components/carousel";
@@ -9,7 +10,11 @@ import type z from "zod";
 import type { postSchema } from "../../../../../../../packages/contracts/src/http/posts/post-schema";
 import UpvoteDownvote from "./upvote-downvote";
 
-export default function PostDialogContent({ data }: { data: z.infer<typeof postSchema> }) {
+type PostDialogData = z.infer<typeof postSchema> & {
+  vote?: z.infer<typeof voteSchema>["voteValue"];
+};
+
+export default function PostDialogContent({ data }: { data: PostDialogData }) {
   const CAPTION_PREVIEW_LENGTH = 50;
   const [expanded, setExpanded] = useState(false);
   const isLong = data.caption.length > CAPTION_PREVIEW_LENGTH;
@@ -45,7 +50,13 @@ export default function PostDialogContent({ data }: { data: z.infer<typeof postS
             </Avatar>
             <span className="truncate">{data.authorSnapshot?.name}</span>
           </div>
-          <UpvoteDownvote className="bg-background-800" postId={data._id} upvotes={data.metrics.upvotes} downvotes={data.metrics.downvotes} />
+          <UpvoteDownvote
+            className="bg-background-800"
+            postId={data._id}
+            upvotes={data.metrics.upvotes}
+            downvotes={data.metrics.downvotes}
+            initialVote={data.vote ?? null}
+          />
         </div>
 
         {/* <Separator /> */}

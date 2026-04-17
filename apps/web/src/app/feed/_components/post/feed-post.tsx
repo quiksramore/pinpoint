@@ -1,10 +1,15 @@
-import type { postSchema } from "@pinpoint/contracts";
+import type { postSchema, voteSchema } from "@pinpoint/contracts";
 import { Avatar, AvatarFallback, AvatarImage } from "@pinpoint/shad-ui/components/avatar";
 import { cn } from "@pinpoint/shad-ui/lib/utils";
 import Image from "next/image";
 import type z from "zod";
 import UpvoteDownvote from "./upvote-downvote";
-export default function FeedPost({ data, className }: { data: z.infer<typeof postSchema>; className?: string }) {
+
+type FeedPostData = z.infer<typeof postSchema> & {
+  vote?: z.infer<typeof voteSchema>["voteValue"];
+};
+
+export default function FeedPost({ data, className }: { data: FeedPostData; className?: string }) {
   return (
     <div className={cn("flex flex-col items-center justify-center gap-5 bg-background-800 p-10", className)}>
       <p>{data.title}</p>
@@ -20,7 +25,13 @@ export default function FeedPost({ data, className }: { data: z.infer<typeof pos
           </Avatar>
           <span className="truncate">{data.authorSnapshot?.name}</span>
         </div>
-        <UpvoteDownvote className="bg-background-900/40" postId={data._id} upvotes={data.metrics.upvotes} downvotes={data.metrics.downvotes} />
+        <UpvoteDownvote
+          className="bg-background-900/40"
+          postId={data._id}
+          upvotes={data.metrics.upvotes}
+          downvotes={data.metrics.downvotes}
+          initialVote={data.vote ?? null}
+        />
       </div>
     </div>
   );
