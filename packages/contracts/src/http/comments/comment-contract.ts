@@ -3,6 +3,19 @@ import { z } from "zod";
 import { commentLikeSchema, commentSchema } from "./comment-schema";
 
 export const commentContract = {
+  // perhaps send first 25 comments with getPost request.
+  getComments: oc
+    .route({
+      method: "GET",
+      description: "Get comments for a post",
+    })
+    .input(
+      z.object({
+        postId: commentSchema.shape.parentPostId,
+      })
+    )
+    .output(z.array(commentSchema.extend({ hasLiked: z.boolean() }))),
+
   addComment: oc
     .route({
       method: "DELETE",
