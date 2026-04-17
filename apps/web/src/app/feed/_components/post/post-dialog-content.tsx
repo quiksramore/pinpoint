@@ -8,6 +8,7 @@ import { Separator } from "@pinpoint/shad-ui/components/separator";
 import Image from "next/image";
 import { useState } from "react";
 import type z from "zod";
+import CommentsDrawer from "./comments-drawer";
 import UpvoteDownvote from "./upvote-downvote";
 
 export default function PostDialogContent({ postData }: { postData: z.infer<typeof contextfulPostSchema> }) {
@@ -18,7 +19,7 @@ export default function PostDialogContent({ postData }: { postData: z.infer<type
   const displayedText = !expanded && isLong ? `${postData.caption.slice(0, CAPTION_PREVIEW_LENGTH)}...` : postData.caption;
   return (
     <ScrollArea className="max-h-[75vh] p-3">
-      <div className="space-y-4">
+      <div className="relative space-y-4">
         <DialogHeader className="text-center sm:text-center">
           <DialogTitle>{postData.title}</DialogTitle>
         </DialogHeader>
@@ -47,13 +48,16 @@ export default function PostDialogContent({ postData }: { postData: z.infer<type
             </Avatar>
             <span className="truncate">{postData.authorSnapshot?.name}</span>
           </div>
-          <UpvoteDownvote
-            className="bg-background-800"
-            postId={postData._id}
-            upvotes={postData.metrics.upvotes}
-            downvotes={postData.metrics.downvotes}
-            initialVote={postData.vote ?? null}
-          />
+          <div className="flex items-center gap-2">
+            <CommentsDrawer parentPostID={postData._id} />
+            <UpvoteDownvote
+              className="bg-background-800"
+              postId={postData._id}
+              upvotes={postData.metrics.upvotes}
+              downvotes={postData.metrics.downvotes}
+              initialVote={postData.vote ?? null}
+            />
+          </div>
         </div>
 
         <Separator />
