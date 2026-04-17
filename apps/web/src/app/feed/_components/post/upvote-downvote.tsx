@@ -94,21 +94,23 @@ export default function UpvoteDownvote({
   };
 
   return (
-    <div className={cn("flex items-center gap-2 rounded-full p-2", className)}>
+    <div className={cn("flex items-center gap-2 rounded-full p-3", className)}>
       <ChevronUp
         onClick={async (e) => {
           e.stopPropagation(); // prevent event bubbling to parent elements (e.g., opening post dialog)
           await handleUpvote();
         }}
-        className={cn("cursor-pointer", currentVote === "UPVOTE" ? "text-green-500" : "")}
+        className={cn("cursor-pointer rounded-md", currentVote === "UPVOTE" ? "bg-green-400" : "")}
+        size="30"
       />
-      {score}
+      {score > 0 ? `+${score}` : score}
       <ChevronDown
         onClick={async (e) => {
           e.stopPropagation(); // prevent event bubbling to parent elements (e.g., opening post dialog)
           await handleDownvote();
         }}
-        className={cn("cursor-pointer", currentVote === "DOWNVOTE" ? "text-red-500" : "")}
+        className={cn("cursor-pointer rounded-md", currentVote === "DOWNVOTE" ? "bg-red-400" : "")}
+        size="30"
       />
     </div>
   );
