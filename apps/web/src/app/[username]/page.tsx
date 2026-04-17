@@ -4,8 +4,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@pinpoint/shad-ui/component
 import { Button } from "@pinpoint/shad-ui/components/button";
 import { Card, CardContent } from "@pinpoint/shad-ui/components/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@pinpoint/shad-ui/components/dialog";
+import { Skeleton } from "@pinpoint/shad-ui/components/skeleton";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, Edit, Grid, Loader2 } from "lucide-react";
+import { Calendar, Edit, Grid } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { authClientWeb } from "../../lib/auth-client-web";
@@ -13,6 +14,7 @@ import { webClientORPC } from "../../lib/orpc-web-client";
 import FeedPost from "../feed/_components/post/feed-post";
 import EditProfileForm from "./_components/edit-profile-form";
 
+// TODO make this page overall better + improve loading skeletons
 export default function Page() {
   const { username } = useParams<{ username: string }>();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -32,11 +34,7 @@ export default function Page() {
   );
 
   if (isProfileLoading) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   if (!profileData) {
@@ -51,9 +49,7 @@ export default function Page() {
   const isOwner = authData?.user?.id === profileData._id;
 
   return (
-    // TODO missing header
     <div className="mx-auto max-w-4xl px-4 py-8">
-      {/* Profile Header */}
       <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
         <Avatar className="h-24 w-24 border-2 border-background shadow-sm md:h-32 md:w-32">
           <AvatarImage src={authData?.user?.id === profileData._id ? authData?.user?.image || undefined : undefined} />
@@ -109,6 +105,7 @@ export default function Page() {
           </div>
         </div>
       </div>
+
       <div className="border-t pt-8">
         <div className="mb-6 flex items-center gap-2 font-semibold">
           <Grid className="h-4 w-4" />
@@ -116,13 +113,12 @@ export default function Page() {
         </div>
 
         {isPostsLoading ? (
-          <div className="flex h-32 items-center justify-center">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
+          <PostsSkeleton />
+          // biome-ignore lint/style/noNestedTernary: TODO
         ) : postsData && postsData.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {postsData.map((post) => (
-              <FeedPost key={post._id} data={post} />
+              <FeedPost key={post._id} postData={post} />
             ))}
           </div>
         ) : (
@@ -137,6 +133,82 @@ export default function Page() {
           </Card>
         )}
       </div>
+    </div>
+  );
+}
+
+function ProfileSkeleton() {
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
+        <Skeleton className="h-24 w-24 rounded-full md:h-32 md:w-32" />
+
+        <div className="flex flex-1 flex-col gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="space-y-2">
+              <Skeleton className="h-9 w-48" />
+            </div>
+            <Skeleton className="h-9 w-28" />
+          </div>
+
+          <div className="flex gap-6">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="flex flex-col gap-2">
+                <Skeleton className="h-5 w-10" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full max-w-md" />
+            <Skeleton className="h-4 w-3/4 max-w-sm" />
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t pt-8">
+        <div className="mb-6 flex items-center gap-2 font-semibold">
+          <Grid className="h-4 w-4" />
+          <span>Posts</span>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <Card key={index} className="overflow-hidden">
+              <Skeleton className="aspect-square w-full" />
+              <CardContent className="space-y-3 p-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PostsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <Card key={index} className="overflow-hidden">
+          <Skeleton className="aspect-square w-full" />
+          <CardContent className="space-y-3 p-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-full" />
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
