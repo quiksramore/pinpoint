@@ -18,9 +18,22 @@ export function getTimeAgo(date: Date) {
   return `${Math.floor(diff / day)}d ago`;
 }
 
+function getPastelColor(seed: string) {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 60%, 85%)`;
+}
+
 export default function FeedPost({ postData, className }: { postData: z.infer<typeof contextfulPostSchema>; className?: string }) {
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-5 rounded-md bg-background p-10 drop-shadow-lg", className)}>
+    <div
+      className={cn("relative flex flex-col items-center justify-center gap-5 rounded-md bg-background p-10 drop-shadow-lg", className)}
+      style={{ backgroundColor: getPastelColor(postData._id) }}
+    >
+      <Image src="/pushpin.png" alt="pin" width={40} height={40} className="absolute top-2" />
       <div className="flex w-full min-w-0 items-center justify-between gap-2">
         <div className="flex min-w-0 gap-2">
           <Avatar className="shrink-0">
