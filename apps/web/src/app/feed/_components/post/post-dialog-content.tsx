@@ -8,6 +8,7 @@ import { Separator } from "@pinpoint/shad-ui/components/separator";
 import Image from "next/image";
 import { useState } from "react";
 import type z from "zod";
+import { env } from "../../../../env";
 import CommentsDrawer from "./comments-drawer";
 import UpvoteDownvote from "./upvote-downvote";
 
@@ -26,13 +27,17 @@ export default function PostDialogContent({ postData }: { postData: z.infer<type
 
         <Carousel className="group relative">
           <CarouselContent>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <CarouselItem key={index} className="basis-full">
-                <div className="relative aspect-square w-full overflow-hidden rounded-md border border-background-700">
-                  <Image src="https://picsum.photos/seed/picsum/200/300" alt={postData.title} fill className="object-cover" />
-                </div>
-              </CarouselItem>
-            ))}
+            {postData.images.map((image, index) => {
+              const postURL = `${env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_DEVELOPMENT_URL}/${image.suburl}`;
+
+              return (
+                <CarouselItem key={postURL} className="basis-full">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-md border border-background-700">
+                    <Image src={postURL} alt={postData.title} fill className="object-cover" />
+                  </div>
+                </CarouselItem>
+              );
+            })}
           </CarouselContent>
           <CarouselPrevious className="left-2 cursor-pointer opacity-0 transition-opacity disabled:opacity-0 group-hover:opacity-100" />
           <CarouselNext className="right-2 cursor-pointer opacity-0 transition-opacity disabled:opacity-0 group-hover:opacity-100" />
