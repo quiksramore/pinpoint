@@ -1,6 +1,6 @@
 import { oc } from "@orpc/contract";
 import { z } from "zod";
-import { commentLikeSchema, commentSchema } from "./comment-schema";
+import { commentLikeSchema, commentSchema, contextfulCommentSchema } from "./comment-schema";
 
 export const commentContract = {
   // perhaps send first 25 comments with getPost request.
@@ -14,7 +14,7 @@ export const commentContract = {
         postId: commentSchema.shape.parentPostId,
       })
     )
-    .output(z.array(commentSchema.extend({ hasLiked: z.boolean() }))),
+    .output(z.array(contextfulCommentSchema)),
 
   addComment: oc
     .route({

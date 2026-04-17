@@ -1,36 +1,32 @@
-import type { postSchema, voteSchema } from "@pinpoint/contracts";
+import type { contextfulPostSchema } from "@pinpoint/contracts";
 import { Avatar, AvatarFallback, AvatarImage } from "@pinpoint/shad-ui/components/avatar";
 import { cn } from "@pinpoint/shad-ui/lib/utils";
 import Image from "next/image";
 import type z from "zod";
 import UpvoteDownvote from "./upvote-downvote";
 
-type FeedPostData = z.infer<typeof postSchema> & {
-  vote?: z.infer<typeof voteSchema>["voteValue"];
-};
-
-export default function FeedPost({ data, className }: { data: FeedPostData; className?: string }) {
+export default function FeedPost({ postData, className }: { postData: z.infer<typeof contextfulPostSchema>; className?: string }) {
   return (
     <div className={cn("flex flex-col items-center justify-center gap-5 bg-background-800 p-10", className)}>
-      <p>{data.title}</p>
+      <p>{postData.title}</p>
       <div className="relative aspect-square w-full overflow-hidden border-5 border-background-700">
-        <Image src="https://picsum.photos/seed/picsum/200/300" alt={data.title} fill className="object-cover" />
+        <Image src="https://picsum.photos/seed/picsum/200/300" alt={postData.title} fill className="object-cover" />
       </div>
       <div className="flex w-full justify-between">
         <div className="flex min-w-0 items-center gap-2">
           {/* TODO: Change SRC to R2 bucket URL */}
           <Avatar>
-            <AvatarImage src={data.authorSnapshot?.image} alt={data.authorSnapshot?.name} />
-            <AvatarFallback>{data.authorSnapshot?.name.slice(0, 2)}</AvatarFallback>
+            <AvatarImage src={postData.authorSnapshot?.image} alt={postData.authorSnapshot?.name} />
+            <AvatarFallback>{postData.authorSnapshot?.name?.slice(0, 2)}</AvatarFallback>
           </Avatar>
-          <span className="truncate">{data.authorSnapshot?.name}</span>
+          <span className="truncate">{postData.authorSnapshot?.name}</span>
         </div>
         <UpvoteDownvote
           className="bg-background-900/40"
-          postId={data._id}
-          upvotes={data.metrics.upvotes}
-          downvotes={data.metrics.downvotes}
-          initialVote={data.vote ?? null}
+          postId={postData._id}
+          upvotes={postData.metrics.upvotes}
+          downvotes={postData.metrics.downvotes}
+          initialVote={postData.vote ?? null}
         />
       </div>
     </div>
