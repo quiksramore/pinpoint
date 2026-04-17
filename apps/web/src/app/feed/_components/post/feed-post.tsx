@@ -21,6 +21,15 @@ export function getTimeAgo(date: Date) {
   return `${Math.floor(diff / day)}d ago`;
 }
 
+function getPastelColor(seed: string) {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 60%, 85%)`;
+}
+
 export default function FeedPost({ postData, className }: { postData: z.infer<typeof contextfulPostSchema>; className?: string }) {
   return (
     <div
