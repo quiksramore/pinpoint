@@ -1,4 +1,5 @@
 import z from "zod";
+import { voteSchema } from "../vote/vote-schema";
 
 export const TITLE_MAX_LENGTH = 30;
 export const CAPTION_MAX_LENGTH = 500;
@@ -42,6 +43,10 @@ export const postSchema = z.object({
   // customFrameEnabled: z.boolean().default(true),
   editedAt: z.date().optional(),
   createdAt: z.coerce.date(),
+});
+
+export const contextfulPostSchema = postSchema.extend({
+  vote: voteSchema.shape.voteValue.optional(),
 });
 
 export const uiCreatePostFormSchema = postSchema

@@ -1,8 +1,7 @@
 import { oc } from "@orpc/contract";
 import { z } from "zod";
 import { profileSchema } from "../profile/profile-schema";
-import { voteSchema } from "../vote/vote-schema";
-import { postSchema, uiCreatePostFormSchema } from "./post-schema";
+import { contextfulPostSchema, postSchema, uiCreatePostFormSchema } from "./post-schema";
 
 export const postContract = {
   createPost: oc
@@ -141,7 +140,7 @@ export const postContract = {
       method: "GET",
       description: "Get all posts (for MVP only)",
     })
-    .output(z.array(postSchema.extend({ vote: voteSchema.shape.voteValue.optional() })))
+    .output(z.array(contextfulPostSchema))
     .errors({
       INTERNAL_SERVER_ERROR: {
         data: z.object({
