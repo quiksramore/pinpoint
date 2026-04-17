@@ -1,6 +1,7 @@
 import type { contextfulPostSchema } from "@pinpoint/contracts";
 import { Avatar, AvatarFallback, AvatarImage } from "@pinpoint/shad-ui/components/avatar";
 import { cn } from "@pinpoint/shad-ui/lib/utils";
+import { Map } from "lucide-react";
 import Image from "next/image";
 import type z from "zod";
 import UpvoteDownvote from "./upvote-downvote";
@@ -58,7 +59,12 @@ export default function FeedPost({ postData, className }: { postData: z.infer<ty
             initialVote={postData.vote ?? null}
           />
           {/* SEND TO MAP */}
-          <p>GO</p>
+          <Map
+            onClick={(e) => {
+              alert("send to location");
+              e.stopPropagation();
+            }}
+          />
         </div>
       </div>
     </div>
