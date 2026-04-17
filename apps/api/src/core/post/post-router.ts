@@ -9,6 +9,7 @@ import { v7 as uuidv7 } from "uuid";
 import type { z } from "zod";
 import { protectedProcedure, publicProcedure } from "../../libs/orpc-procedures";
 import { ProfileService } from "../profile/profile-service";
+import { VoteService } from "../vote/vote-service";
 import { getStrongestCluster } from "./location-util";
 import { PostService } from "./post-service";
 
@@ -265,5 +266,24 @@ export const postRouter = {
   }),
 
   // TODO: DELETE IN PRODUCTION, ENDPOINT JUST FOR MVP
-  getAllPosts: publicProcedure.posts.getAllPosts.handler(async () => await PostService.find({}).sort({ createdAt: -1 }).lean()),
+  getAllPosts: publicProcedure.posts.getAllPosts.handler(async ({ context }) => {
+    const documents = await PostService.find({}).sort({ createdAt: -1 }).lean();
+
+    if (!context || !context.user) return documents;
+
+    const postIds = documents.map((doc) => doc._id);
+
+    const votes = await VoteService.find({
+      postId: { $in: postIds },
+      // biome-ignore lint/style/noNonNullAssertion: already checked for context
+      authorId: context!.user!.id,
+    });
+
+    const voteMap = new Map(votes.map((v) => [v.postId.toString(), v.voteValue]));
+
+    return documents.map((doc) => ({
+      ...doc,
+      hasVoted: !!voteMap.get(doc._id.toString()),
+    }));
+  }),
 };
