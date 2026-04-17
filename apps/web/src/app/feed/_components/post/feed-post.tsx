@@ -4,6 +4,7 @@ import { cn } from "@pinpoint/shad-ui/lib/utils";
 import { Map } from "lucide-react";
 import Image from "next/image";
 import type z from "zod";
+import { env } from "../../../../env";
 import { getPastelColor, getTimeAgo } from "../post-grid";
 import UpvoteDownvote from "./upvote-downvote";
 
@@ -26,7 +27,13 @@ export default function FeedPost({ postData, className }: { postData: z.infer<ty
       </div>
       <div className="relative aspect-square w-full overflow-hidden border-5 border-background-700">
         {/* TODO: Change SRC to R2 bucket URL */}
-        <Image src="https://picsum.photos/seed/picsum/200/500" alt={postData.title} fill className="object-cover" />
+        <Image
+          // biome-ignore lint/style/noNonNullAssertion: all posts have at least one image
+          src={`${env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_DEVELOPMENT_URL}/${postData.images[0]!.suburl}`}
+          alt={postData.title}
+          fill
+          className="object-cover"
+        />
       </div>
       <div className="w-full">
         <div className="flex w-full items-center justify-between">
