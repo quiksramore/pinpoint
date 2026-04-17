@@ -1,13 +1,14 @@
 import type { contextfulPostSchema } from "@pinpoint/contracts";
 import { Avatar, AvatarFallback, AvatarImage } from "@pinpoint/shad-ui/components/avatar";
 import { Button } from "@pinpoint/shad-ui/components/button";
+import type { CarouselApi } from "@pinpoint/shad-ui/components/carousel";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@pinpoint/shad-ui/components/carousel";
 import { DialogDescription, DialogHeader, DialogTitle } from "@pinpoint/shad-ui/components/dialog";
 import { ScrollArea } from "@pinpoint/shad-ui/components/scroll-area";
 import { Separator } from "@pinpoint/shad-ui/components/separator";
 import { Map } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type z from "zod";
 import { env } from "../../../../env";
 import { authClientWeb } from "../../../../lib/auth-client-web";
@@ -18,11 +19,30 @@ import UpvoteDownvote from "./upvote-downvote";
 export default function PostDialogContent({ postData }: { postData: z.infer<typeof contextfulPostSchema> }) {
   const CAPTION_PREVIEW_LENGTH = 50;
   const [expanded, setExpanded] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(1);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const isLong = postData.caption.length > CAPTION_PREVIEW_LENGTH;
   const displayedText = !expanded && isLong ? `${postData.caption.slice(0, CAPTION_PREVIEW_LENGTH)}...` : postData.caption;
 
   const { data: authData } = authClientWeb.useSession();
   const userId = authData?.user?.id;
+
+  useEffect(() => {
+    if (!carouselApi) return;
+
+    const onSelect = () => {
+      setCurrentImageIndex(carouselApi.selectedScrollSnap() + 1);
+    };
+
+    onSelect();
+    carouselApi.on("select", onSelect);
+    carouselApi.on("reInit", onSelect);
+
+    return () => {
+      carouselApi.off("select", onSelect);
+      carouselApi.off("reInit", onSelect);
+    };
+  }, [carouselApi]);
 
   return (
     <ScrollArea className="max-h-[75vh] p-3">
@@ -36,9 +56,9 @@ export default function PostDialogContent({ postData }: { postData: z.infer<type
 
         {userId === postData.authorId && <PostOptionsDropdown postId={postData._id} className="absolute top-0 left-0 cursor-pointer" />}
 
-        <Carousel className="group relative">
+        <Carousel className="group relative" setApi={setCarouselApi}>
           <CarouselContent>
-            {postData.images.map((image, index) => {
+            {postData.images.map((image) => {
               const postURL = `${env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_DEVELOPMENT_URL}/${image.suburl}`;
 
               return (
@@ -53,7 +73,9 @@ export default function PostDialogContent({ postData }: { postData: z.infer<type
           <CarouselPrevious className="left-2 cursor-pointer opacity-0 transition-opacity disabled:opacity-0 group-hover:opacity-100" />
           <CarouselNext className="right-2 cursor-pointer opacity-0 transition-opacity disabled:opacity-0 group-hover:opacity-100" />
           {/* TODO: replace with actual values */}
-          <div className="absolute right-2 bottom-2 rounded-md bg-black/50 px-2 py-0.5 text-white text-xs">1/4</div>
+          <div className="absolute right-2 bottom-2 rounded-md bg-black/50 px-2 py-0.5 text-white text-xs">
+            {currentImageIndex}/{postData.images.length}
+          </div>
         </Carousel>
         <div className="flex min-w-0 items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
