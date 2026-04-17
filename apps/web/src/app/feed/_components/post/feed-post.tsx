@@ -9,18 +9,16 @@ import { getPastelColor } from "../post-grid";
 import UpvoteDownvote from "./upvote-downvote";
 
 export function getTimeAgo(date: Date) {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
+  const diff = Date.now() - date.getTime();
 
-  const seconds = Math.floor(diffMs / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
 
-  if (seconds < 60) return `${seconds}s ago`;
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  return `${days}d ago`;
+  if (diff < minute) return `${Math.floor(diff / 1000)}s ago`;
+  if (diff < hour) return `${Math.floor(diff / minute)}m ago`;
+  if (diff < day) return `${Math.floor(diff / hour)}h ago`;
+  return `${Math.floor(diff / day)}d ago`;
 }
 
 export default function FeedPost({ postData, className }: { postData: z.infer<typeof contextfulPostSchema>; className?: string }) {
