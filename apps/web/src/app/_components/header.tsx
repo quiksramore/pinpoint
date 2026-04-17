@@ -1,11 +1,22 @@
 "use client";
 
 import { Button } from "@pinpoint/shad-ui/components/button";
+import { useQuery } from "@tanstack/react-query";
 import { Map as MapIcon, Newspaper, Send, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { authClientWeb } from "../../lib/auth-client-web";
+import { webClientORPC } from "../../lib/orpc-web-client";
 
 export default function Header({ defaultValue }: { defaultValue: string }) {
   const router = useRouter();
+  const { data: authData } = authClientWeb.useSession();
+  const { data: profileData } = useQuery(
+    webClientORPC.profile.getProfileById.queryOptions({
+      enabled: !!authData,
+      // biome-ignore lint/style/noNonNullAssertion: only enabled when authData is defined
+      input: { id: authData?.user?.id },
+    })
+  );
 
   return (
     <header className="flex items-center justify-between bg-background p-8">
@@ -22,10 +33,10 @@ export default function Header({ defaultValue }: { defaultValue: string }) {
         <Button
           variant={defaultValue === "profile" ? "default" : "ghost"}
           className="mr-4 cursor-pointer p-5"
-          onClick={() => router.push("/profile")}
+          onClick={() => router.push(`/${profileData?.username}`)}
         >
           <UserRound />
-          Profile
+          Your Profile
         </Button>
         <Button
           variant={defaultValue === "messages" ? "default" : "ghost"}
