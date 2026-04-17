@@ -7,19 +7,8 @@ export const MAX_IMAGES = 5;
 export const pointSchema = z.object({
   type: z.literal("Point"),
   coordinates: z.tuple([
-<<<<<<< HEAD
-    // TODO: revert to correct schema
-=======
->>>>>>> 953b82dc27235ddbdf614753a32a7292197cdebd
-    // z.number().min(-90).max(90), // longitude (x)
-    // z.number().min(-180).max(180), // latitude (y)
-    z.number(), // longitude (x)
-    z.number(), // latitude (y)
-<<<<<<< HEAD
     z.number().min(-180).max(180), // longitude (x)
     z.number().min(-90).max(90), // latitude (y)
-=======
->>>>>>> 953b82dc27235ddbdf614753a32a7292197cdebd
   ]),
 });
 
