@@ -10,6 +10,7 @@ export const env = createEnv({
     NEXT_PUBLIC_HOSTNAME: z.string().min(1),
     NEXT_PUBLIC_NODE_ENV: z.enum(["development", "production"]),
     NEXT_PUBLIC_CLOUDFLARE_PUBLIC_DEVELOPMENT_URL: z.string().min(1),
+    NEXT_PUBLIC_MAPKIT_JS_TOKEN: z.string().min(1),
   },
 
   runtimeEnv: {
@@ -19,6 +20,7 @@ export const env = createEnv({
     NEXT_PUBLIC_HOSTNAME: process.env.NEXT_PUBLIC_HOSTNAME,
     NEXT_PUBLIC_NODE_ENV: process.env.NEXT_PUBLIC_NODE_ENV,
     NEXT_PUBLIC_CLOUDFLARE_PUBLIC_DEVELOPMENT_URL: process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_DEVELOPMENT_URL,
+    NEXT_PUBLIC_MAPKIT_JS_TOKEN: process.env.NEXT_PUBLIC_MAPKIT_JS_TOKEN,
   },
   emptyStringAsUndefined: true,
 });
