@@ -5,35 +5,93 @@ import { Button } from "@pinpoint/shad-ui/components/button";
 import { Input } from "@pinpoint/shad-ui/components/input";
 import { ScrollArea } from "@pinpoint/shad-ui/components/scroll-area";
 import { cn } from "@pinpoint/shad-ui/lib/utils";
-import { useState } from "react";
+import { messageSchema } from "@pinpoint/contracts";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { z } from "zod";
+import { authClientWeb } from "../../../lib/auth-client-web";
+import { webClientORPC } from "../../../lib/orpc-web-client";
+import { socketClientORPC } from "../../../lib/orpc-ws-client";
 
-type Message = {
-  id: string;
-  text: string;
-  sender: "me" | "them";
-};
+type Message = z.infer<typeof messageSchema>;
 
-export default function Messaging({ name }: { name: string }) {
-  const [messages, setMessages] = useState<Message[]>([
-    { id: "1", text: "Hey 👋", sender: "them" },
-    { id: "2", text: "What's up?", sender: "them" },
-  ]);
+export default function Messaging({ chatroomId }: { chatroomId: string }) {
+  const { data: session } = authClientWeb.useSession();
+  const userId = session?.user?.id;
+
+  const { data: chatrooms } = useQuery(webClientORPC.chatroom.getChatrooms.queryOptions());
+  const chatroom = useMemo(() => chatrooms?.find((c) => c._id === chatroomId), [chatrooms, chatroomId]);
+  const recipientId = useMemo(() => chatroom?.activeParticipantsId.find((id) => id !== userId), [chatroom, userId]);
+
+  const { data: recipientProfile } = useQuery({
+    ...webClientORPC.profile.getProfileById.queryOptions({
+      input: { id: recipientId ?? "" },
+    }),
+    enabled: !!recipientId,
+  });
+
+  const { data: history } = useQuery({
+    ...webClientORPC.chatroom.getMessageHistory.queryOptions({
+      input: { chatroomId },
+    }),
+    enabled: !!chatroomId,
+  });
+
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  useEffect(() => {
+    if (history) {
+      setMessages(history);
+    }
+  }, [history]);
+
+  useEffect(() => {
+    if (!chatroomId) return;
+
+    let isCancelled = false;
+    const subscribe = async () => {
+      try {
+        const iterator = await socketClientORPC.subscribeChatRoom({ id: chatroomId });
+        for await (const event of iterator) {
+          if (isCancelled) break;
+          const msg = event.incomingMessage;
+          setMessages((prev) => {
+            if (prev.find((m) => m._id === msg._id)) return prev;
+            return [...prev, msg];
+          });
+        }
+      } catch (err) {
+        console.error("Failed to subscribe to chatroom:", err);
+      }
+    };
+
+    subscribe();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [chatroomId]);
 
   const [input, setInput] = useState("");
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     const trimmed = input.trim();
-    if (!trimmed) return;
+    if (!trimmed || !chatroomId) return;
 
-    const newMessage: Message = {
-      id: crypto.randomUUID(),
-      text: trimmed,
-      sender: "me",
-    };
-
-    setMessages((prev) => [...prev, newMessage]);
     setInput("");
+
+    try {
+      await socketClientORPC.publishChatMessage({
+        chatroomId,
+        message: trimmed,
+      });
+    } catch (err) {
+      console.error("Failed to send message:", err);
+      // maybe add the message back to input or show error
+    }
   };
+
+  const name = recipientProfile?.username || "Loading...";
 
   return (
     <div className="flex h-full min-w-0 flex-1 flex-col">
@@ -41,7 +99,7 @@ export default function Messaging({ name }: { name: string }) {
       <header className="flex w-full gap-2 border-background-700 border-b bg-background-800 p-5">
         <Avatar>
           <AvatarImage src="https://github.com/shadcn.png" />
-          <AvatarFallback>CN</AvatarFallback>
+          <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
         <h1 className="font-bold text-lg">{name}</h1>
       </header>
@@ -50,30 +108,31 @@ export default function Messaging({ name }: { name: string }) {
       <ScrollArea className="min-h-0 flex-1">
         <div className="flex-1 space-y-3 p-5">
           {messages.map((msg, index) => {
+            const isMe = msg.authorId === userId;
             const prev = messages[index - 1];
-            const showAvatar = !prev || prev.sender !== msg.sender;
+            const showAvatar = !prev || prev.authorId !== msg.authorId;
 
             return (
-              <div key={msg.id} className={cn("flex items-end gap-2", msg.sender === "me" ? "justify-end" : "justify-start")}>
+              <div key={msg._id} className={cn("flex items-end gap-2", isMe ? "justify-end" : "justify-start")}>
                 {/* Avatar (only when sender changes) */}
-                {msg.sender !== "me" && showAvatar && (
+                {!isMe && showAvatar && (
                   <Avatar className="h-8 w-8">
                     <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                 )}
 
                 {/* Spacer to align grouped messages */}
-                {msg.sender !== "me" && !showAvatar && <div className="w-8" />}
+                {!isMe && !showAvatar && <div className="w-8" />}
 
                 {/* Message bubble */}
                 <div
                   className={cn(
                     "wrap-anywhere max-w-[70%] rounded-2xl px-4 py-2 text-sm",
-                    msg.sender === "me" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                    isMe ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                   )}
                 >
-                  {msg.text}
+                  {msg.content}
                 </div>
               </div>
             );
