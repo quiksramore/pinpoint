@@ -5,7 +5,7 @@ import { Map } from "lucide-react";
 import Image from "next/image";
 import type z from "zod";
 import { env } from "../../../../env";
-import { getPastelColor } from "../post-grid";
+import { getPastelColor, getTimeAgo } from "../post-grid";
 import UpvoteDownvote from "./upvote-downvote";
 
 export default function FeedPost({ postData, className }: { postData: z.infer<typeof contextfulPostSchema>; className?: string }) {
