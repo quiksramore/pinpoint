@@ -11,7 +11,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { authClientWeb } from "../../lib/auth-client-web";
 import { webClientORPC } from "../../lib/orpc-web-client";
-import FeedPost from "../feed/_components/post/feed-post";
+import PostDialog from "../feed/_components/post/post-dialog";
 import EditProfileForm from "./_components/edit-profile-form";
 
 // TODO make this page overall better + improve loading skeletons
@@ -118,7 +118,7 @@ export default function Page() {
         ) : postsData && postsData.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {postsData.map((post) => (
-              <FeedPost key={post._id} postData={post} />
+              <PostDialog key={post._id} postData={post} />
             ))}
           </div>
         ) : (
