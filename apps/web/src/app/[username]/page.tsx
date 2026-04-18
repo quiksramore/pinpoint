@@ -29,7 +29,7 @@ export default function Page() {
   const { data: postsData, isLoading: isPostsLoading } = useQuery(
     webClientORPC.posts.getPostsByProfileId.queryOptions({
       enabled: !!profileData,
-      input: { profileId: profileData?._id! },
+      input: { profileId: profileData?._id ?? "" },
     })
   );
 
@@ -52,7 +52,7 @@ export default function Page() {
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
         <Avatar className="h-24 w-24 border-2 border-background shadow-sm md:h-32 md:w-32">
-          <AvatarImage src={authData?.user?.id === profileData._id ? authData?.user?.image || undefined : undefined} />
+          <AvatarImage src={profileData.image || (authData?.user?.id === profileData._id ? authData?.user?.image || undefined : undefined)} />
           <AvatarFallback className="text-2xl">{profileData.username.slice(0, 2).toUpperCase()}</AvatarFallback>
         </Avatar>
 
@@ -152,8 +152,8 @@ function ProfileSkeleton() {
           </div>
 
           <div className="flex gap-6">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="flex flex-col gap-2">
+            {[{ key: "posts" }, { key: "followers" }, { key: "following" }].map((item) => (
+              <div key={item.key} className="flex flex-col gap-2">
                 <Skeleton className="h-5 w-10" />
                 <Skeleton className="h-3 w-16" />
               </div>
@@ -174,8 +174,8 @@ function ProfileSkeleton() {
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <Card key={index} className="overflow-hidden">
+          {["post-1", "post-2", "post-3", "post-4", "post-5", "post-6"].map((item) => (
+            <Card key={item} className="overflow-hidden">
               <Skeleton className="aspect-square w-full" />
               <CardContent className="space-y-3 p-4">
                 <div className="flex items-center gap-3">
@@ -196,8 +196,8 @@ function ProfileSkeleton() {
 function PostsSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <Card key={index} className="overflow-hidden">
+      {["post-1", "post-2", "post-3", "post-4", "post-5", "post-6"].map((item) => (
+        <Card key={item} className="overflow-hidden">
           <Skeleton className="aspect-square w-full" />
           <CardContent className="space-y-3 p-4">
             <div className="flex items-center gap-3">
