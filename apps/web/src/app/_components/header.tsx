@@ -33,7 +33,7 @@ export default function Header({ defaultValue, className }: { defaultValue: stri
             fill="#B18CEE"
           />
         </svg>
-        <h1 className="font-bold text-2xl text-secondary">Pinpoint</h1>
+        <h1 className="font-bold text-2xl text-secondary">PinPoint</h1>
       </div>
       <div>
         <Button variant={defaultValue === "feed" ? "default" : "ghost"} className="mr-4 cursor-pointer p-5" onClick={() => router.push("/feed")}>
