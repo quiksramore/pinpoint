@@ -1,3 +1,4 @@
+import { chatroomContract } from "./chatroom/chatroom-contract";
 import { commentContract } from "./comments/comment-contract";
 import { postContract } from "./posts/post-contract";
 import { profileContract } from "./profile/profile-contract";
@@ -8,4 +9,5 @@ export const httpContract = {
   profile: profileContract,
   comment: commentContract,
   vote: voteContract,
+  chatroom: chatroomContract,
 };

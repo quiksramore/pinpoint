@@ -1,15 +1,52 @@
 import { eventIterator, oc } from "@orpc/contract";
 import { z } from "zod";
-
-export const message = z.object({
-  from: z.union([z.literal("expo"), z.literal("electron"), z.literal("web")]),
-  content: z.string(),
-});
+import { chatroomSchema } from "../http/chatroom/chatroom-schema";
+import { messageSchema } from "./message/message-schema";
 
 export const webSocketContract = {
-  messaging: {
-    publishChatMessage: oc.input(message),
-    subscribeToChatMessages: oc.output(eventIterator(message)),
-    getPastChatMessages: oc.output(z.array(message)),
-  },
+  publishChatMessage: oc
+    .input(
+      z.object({
+        chatroomId: messageSchema.shape.chatroomId,
+        message: messageSchema.shape.content,
+      })
+    )
+    .errors({
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
+  subscribeChatRoom: oc
+    .input(
+      z.object({
+        id: chatroomSchema.shape._id,
+      })
+    )
+    .output(
+      eventIterator(
+        z.object({
+          incomingMessage: messageSchema,
+        })
+      )
+    )
+    .errors({
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      NOT_FOUND: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
 };
