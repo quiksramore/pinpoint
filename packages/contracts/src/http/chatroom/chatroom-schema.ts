@@ -4,7 +4,7 @@ export const chatroomSchema = z.object({
   _id: z.uuidv7(),
   activeParticipantsId: z.array(z.string()),
   pastParticipantsId: z.array(z.string()).default([]),
-  createdAt: z.date(),
+  createdAt: z.coerce.date(),
 });
 
 // TODO when refactoring for group chats, create separate collection called chat_participants:

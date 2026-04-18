@@ -26,6 +26,8 @@ type ErrorWithDataMessage = {
   };
 };
 
+const FALLBACK_ID_PREVIEW_LENGTH = 6;
+
 function getErrorMessage(error: unknown, fallback: string) {
   if (typeof error === "object" && error !== null) {
     const maybeError = error as ErrorWithDataMessage;
@@ -47,7 +49,11 @@ export default function MessagesSidebar({ activeId, setActiveId }: { activeId: s
   const userId = session?.user?.id;
 
   const chatroomsQueryOptions = webClientORPC.chatroom.getChatrooms.queryOptions();
-  const { data: chatrooms } = useQuery(chatroomsQueryOptions);
+  const { data: chatrooms } = useQuery({
+    ...chatroomsQueryOptions,
+    enabled: !!userId,
+    refetchOnMount: "always",
+  });
 
   const startChatMutation = useMutation(
     webClientORPC.chatroom.startChatRoom.mutationOptions({
@@ -212,14 +218,45 @@ function ChatroomItem({
   onClick: () => void;
   search: string;
 }) {
-  const { data: profile } = useQuery({
+  const {
+    data: profile,
+    isPending,
+    isError,
+  } = useQuery({
     ...webClientORPC.profile.getProfileById.queryOptions({
       input: { id: recipientId ?? "" },
     }),
     enabled: !!recipientId,
   });
 
-  if (!profile) return null;
+  if (isPending) {
+    return (
+      <Button
+        disabled
+        className={cn(
+          "group flex w-full items-center gap-3 rounded-xl px-5 py-6 text-left transition-all",
+          isActive ? "bg-accent" : "hover:bg-accent/60"
+        )}
+      >
+        <div className="relative shrink-0">
+          <Avatar className="h-9 w-9">
+            <AvatarFallback>...</AvatarFallback>
+          </Avatar>
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-1">
+            <span className={cn("truncate font-medium text-sm", isActive ? "text-foreground" : "text-foreground/90")}>Loading...</span>
+          </div>
+        </div>
+      </Button>
+    );
+  }
+
+  if (!profile || isError) {
+    const fallbackName = recipientId ? `User ${recipientId.slice(0, FALLBACK_ID_PREVIEW_LENGTH)}` : "Unknown user";
+    return renderChatroomButton({ fallbackName, isActive, onClick, search });
+  }
 
   if (search && !profile.username.toLowerCase().includes(search.toLowerCase())) {
     return null;
@@ -243,6 +280,44 @@ function ChatroomItem({
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-1">
           <span className={cn("truncate font-medium text-sm", isActive ? "text-foreground" : "text-foreground/90")}>{profile.username}</span>
+        </div>
+      </div>
+    </Button>
+  );
+}
+
+function renderChatroomButton({
+  fallbackName,
+  isActive,
+  onClick,
+  search,
+}: {
+  fallbackName: string;
+  isActive: boolean;
+  onClick: () => void;
+  search: string;
+}) {
+  if (search && !fallbackName.toLowerCase().includes(search.toLowerCase())) {
+    return null;
+  }
+
+  return (
+    <Button
+      onClick={onClick}
+      className={cn(
+        "group flex w-full cursor-pointer items-center gap-3 rounded-xl px-5 py-6 text-left transition-all",
+        isActive ? "bg-accent" : "hover:bg-accent/60"
+      )}
+    >
+      <div className="relative shrink-0">
+        <Avatar className="h-9 w-9">
+          <AvatarFallback>{fallbackName.charAt(0).toUpperCase()}</AvatarFallback>
+        </Avatar>
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-1">
+          <span className={cn("truncate font-medium text-sm", isActive ? "text-foreground" : "text-foreground/90")}>{fallbackName}</span>
         </div>
       </div>
     </Button>

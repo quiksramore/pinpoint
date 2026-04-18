@@ -6,20 +6,26 @@ import { Button } from "@pinpoint/shad-ui/components/button";
 import { Input } from "@pinpoint/shad-ui/components/input";
 import { ScrollArea } from "@pinpoint/shad-ui/components/scroll-area";
 import { cn } from "@pinpoint/shad-ui/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import type { z } from "zod";
 import { authClientWeb } from "../../../lib/auth-client-web";
 import { webClientORPC } from "../../../lib/orpc-web-client";
-import { socketClientORPC } from "../../../lib/orpc-ws-client";
+import { getSocketClientORPC } from "../../../lib/orpc-ws-client";
 
 type Message = z.infer<typeof messageSchema>;
 
 export default function Messaging({ chatroomId }: { chatroomId: string }) {
+  const queryClient = useQueryClient();
   const { data: session } = authClientWeb.useSession();
   const userId = session?.user?.id;
 
-  const { data: chatrooms } = useQuery(webClientORPC.chatroom.getChatrooms.queryOptions());
+  const chatroomsQueryOptions = webClientORPC.chatroom.getChatrooms.queryOptions();
+  const { data: chatrooms } = useQuery({
+    ...chatroomsQueryOptions,
+    enabled: !!userId,
+    refetchOnMount: "always",
+  });
   const chatroom = useMemo(() => chatrooms?.find((c) => c._id === chatroomId), [chatrooms, chatroomId]);
   const recipientId = useMemo(() => chatroom?.activeParticipantsId.find((id) => id !== userId), [chatroom, userId]);
 
@@ -30,11 +36,15 @@ export default function Messaging({ chatroomId }: { chatroomId: string }) {
     enabled: !!recipientId,
   });
 
+  const historyQueryOptions = webClientORPC.chatroom.getMessageHistory.queryOptions({
+    input: { chatroomId },
+  });
+
   const { data: history } = useQuery({
-    ...webClientORPC.chatroom.getMessageHistory.queryOptions({
-      input: { chatroomId },
-    }),
-    enabled: !!chatroomId,
+    ...historyQueryOptions,
+    enabled: !!chatroomId && !!userId,
+    refetchInterval: 4000,
+    refetchOnMount: "always",
   });
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -50,12 +60,13 @@ export default function Messaging({ chatroomId }: { chatroomId: string }) {
   }, [history]);
 
   useEffect(() => {
-    if (!chatroomId) return;
+    if (!chatroomId || !userId) return;
 
     let isCancelled = false;
     const subscribe = async () => {
       try {
         setSubscriptionError(null);
+        const socketClientORPC = getSocketClientORPC();
         const iterator = await socketClientORPC.subscribeChatRoom({ id: chatroomId });
         for await (const event of iterator) {
           if (isCancelled) break;
@@ -75,7 +86,7 @@ export default function Messaging({ chatroomId }: { chatroomId: string }) {
     return () => {
       isCancelled = true;
     };
-  }, [chatroomId]);
+  }, [chatroomId, userId]);
 
   const sendMessage = async () => {
     const trimmed = input.trim();
@@ -85,10 +96,12 @@ export default function Messaging({ chatroomId }: { chatroomId: string }) {
 
     try {
       setSendError(null);
+      const socketClientORPC = getSocketClientORPC();
       await socketClientORPC.publishChatMessage({
         chatroomId,
         message: trimmed,
       });
+      await queryClient.invalidateQueries({ queryKey: historyQueryOptions.queryKey });
     } catch {
       setSendError("Failed to send message.");
     }
