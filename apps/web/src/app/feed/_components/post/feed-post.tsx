@@ -1,14 +1,24 @@
 import type { contextfulPostSchema } from "@pinpoint/contracts";
 import { Avatar, AvatarFallback, AvatarImage } from "@pinpoint/shad-ui/components/avatar";
 import { cn } from "@pinpoint/shad-ui/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/dist/client/components/navigation";
 import Image from "next/image";
 import type z from "zod";
 import { env } from "../../../../env";
+import { webClientORPC } from "../../../../lib/orpc-web-client";
 import { getPastelColor, getTimeAgo } from "../post-grid";
 import SendToMapButton from "./send-to-map-button";
 import UpvoteDownvote from "./upvote-downvote";
 
 export default function FeedPost({ postData, className }: { postData: z.infer<typeof contextfulPostSchema>; className?: string }) {
+  const router = useRouter();
+
+  const { data: authorProfile } = useQuery(
+    webClientORPC.profile.getProfileById.queryOptions({
+      input: { id: postData.authorId },
+    })
+  );
   return (
     <div
       className={cn("relative flex flex-col items-center justify-center gap-5 rounded-md bg-background p-10 drop-shadow-lg", className)}
@@ -21,7 +31,15 @@ export default function FeedPost({ postData, className }: { postData: z.infer<ty
             <AvatarImage src={postData.authorSnapshot?.image} alt={postData.authorSnapshot?.name} />
             <AvatarFallback>{postData.authorSnapshot?.name?.slice(0, 2)}</AvatarFallback>
           </Avatar>
-          <span className="truncate font-bold text-xl">{postData.authorSnapshot?.name}</span>
+          <span
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/${authorProfile?.username}`);
+            }}
+            className="truncate font-bold text-xl"
+          >
+            {postData.authorSnapshot?.name}
+          </span>
         </div>
         <span className="text-foreground-500">{getTimeAgo(postData.createdAt)}</span>
       </div>
