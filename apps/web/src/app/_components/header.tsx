@@ -1,13 +1,14 @@
 "use client";
 
 import { Button } from "@pinpoint/shad-ui/components/button";
+import { cn } from "@pinpoint/shad-ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Map as MapIcon, Newspaper, Send, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { authClientWeb } from "../../lib/auth-client-web";
 import { webClientORPC } from "../../lib/orpc-web-client";
 
-export default function Header({ defaultValue }: { defaultValue: string }) {
+export default function Header({ defaultValue, className }: { defaultValue: string; className?: string }) {
   const router = useRouter();
   const { data: authData } = authClientWeb.useSession();
   const { data: profileData } = useQuery(
@@ -19,7 +20,7 @@ export default function Header({ defaultValue }: { defaultValue: string }) {
   );
 
   return (
-    <header className="flex items-center justify-between bg-background p-8">
+    <header className={cn("flex items-center justify-between bg-background p-8", className)}>
       <h1 className="font-bold text-2xl">Pinpoint</h1>
       <div>
         <Button variant={defaultValue === "feed" ? "default" : "ghost"} className="mr-4 cursor-pointer p-5" onClick={() => router.push("/feed")}>
