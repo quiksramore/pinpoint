@@ -6,11 +6,14 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { DialogDescription, DialogHeader, DialogTitle } from "@pinpoint/shad-ui/components/dialog";
 import { ScrollArea } from "@pinpoint/shad-ui/components/scroll-area";
 import { Separator } from "@pinpoint/shad-ui/components/separator";
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type z from "zod";
 import { env } from "../../../../env";
 import { authClientWeb } from "../../../../lib/auth-client-web";
+import { webClientORPC } from "../../../../lib/orpc-web-client";
 import CommentsDrawer from "./comments-drawer";
 import PostOptionsDropdown from "./post-options-dropdown";
 import SendToMapButton from "./send-to-map-button";
@@ -26,6 +29,14 @@ export default function PostDialogContent({ postData }: { postData: z.infer<type
 
   const { data: authData } = authClientWeb.useSession();
   const userId = authData?.user?.id;
+
+  const router = useRouter();
+
+  const { data: authorProfile } = useQuery(
+    webClientORPC.profile.getProfileById.queryOptions({
+      input: { id: postData.authorId },
+    })
+  );
 
   useEffect(() => {
     if (!carouselApi) return;
@@ -84,7 +95,15 @@ export default function PostDialogContent({ postData }: { postData: z.infer<type
               <AvatarImage src={postData.authorSnapshot?.image} alt={postData.authorSnapshot?.name} />
               <AvatarFallback>{postData.authorSnapshot?.name.slice(0, 2)}</AvatarFallback>
             </Avatar>
-            <span className="truncate">{postData.authorSnapshot?.name}</span>
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/${authorProfile?.username}`);
+              }}
+              className="cursor-pointer truncate"
+            >
+              {postData.authorSnapshot?.name}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <CommentsDrawer parentPostID={postData._id} authData={authData} />
