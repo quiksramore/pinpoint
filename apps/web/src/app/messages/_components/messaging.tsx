@@ -69,7 +69,7 @@ export default function Messaging({ name }: { name: string }) {
                 {/* Message bubble */}
                 <div
                   className={cn(
-                    "max-w-[70%] rounded-2xl px-4 py-2 text-sm",
+                    "wrap-anywhere max-w-[70%] rounded-2xl px-4 py-2 text-sm",
                     msg.sender === "me" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                   )}
                 >
