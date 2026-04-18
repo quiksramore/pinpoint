@@ -28,6 +28,11 @@ type ErrorWithDataMessage = {
 
 const FALLBACK_ID_PREVIEW_LENGTH = 6;
 
+type ActiveChatSelection = {
+  id: string;
+  recipientId?: string;
+};
+
 function getErrorMessage(error: unknown, fallback: string) {
   if (typeof error === "object" && error !== null) {
     const maybeError = error as ErrorWithDataMessage;
@@ -38,7 +43,13 @@ function getErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
-export default function MessagesSidebar({ activeId, setActiveId }: { activeId: string | undefined; setActiveId: (id: string) => void }) {
+export default function MessagesSidebar({
+  activeId,
+  setActiveChat,
+}: {
+  activeId: string | undefined;
+  setActiveChat: (chat: ActiveChatSelection) => void;
+}) {
   const [search, setSearch] = useState("");
   const [newChatUsername, setNewChatUsername] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -77,7 +88,7 @@ export default function MessagesSidebar({ activeId, setActiveId }: { activeId: s
           });
         }
 
-        setActiveId(data.id);
+        setActiveChat({ id: data.id, recipientId: variables.recipientId });
         setIsDialogOpen(false);
         setNewChatUsername("");
         setError(null);
@@ -195,9 +206,10 @@ export default function MessagesSidebar({ activeId, setActiveId }: { activeId: s
           {chatroomList.map((item) => (
             <ChatroomItem
               key={item.chatroomId}
+              chatroomId={item.chatroomId}
               recipientId={item.recipientId}
               isActive={activeId === item.chatroomId}
-              onClick={() => setActiveId(item.chatroomId)}
+              onClick={() => setActiveChat({ id: item.chatroomId, recipientId: item.recipientId })}
               search={search}
             />
           ))}
@@ -208,11 +220,13 @@ export default function MessagesSidebar({ activeId, setActiveId }: { activeId: s
 }
 
 function ChatroomItem({
+  chatroomId,
   recipientId,
   isActive,
   onClick,
   search,
 }: {
+  chatroomId: string;
   recipientId: string | undefined;
   isActive: boolean;
   onClick: () => void;
@@ -232,11 +246,12 @@ function ChatroomItem({
   if (isPending) {
     return (
       <Button
-        disabled
+        onClick={onClick}
         className={cn(
           "group flex w-full items-center gap-3 rounded-xl px-5 py-6 text-left transition-all",
           isActive ? "bg-accent" : "hover:bg-accent/60"
         )}
+        data-chatroom-id={chatroomId}
       >
         <div className="relative shrink-0">
           <Avatar className="h-9 w-9">

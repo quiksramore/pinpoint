@@ -7,7 +7,7 @@ import { Input } from "@pinpoint/shad-ui/components/input";
 import { ScrollArea } from "@pinpoint/shad-ui/components/scroll-area";
 import { cn } from "@pinpoint/shad-ui/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { z } from "zod";
 import { authClientWeb } from "../../../lib/auth-client-web";
 import { webClientORPC } from "../../../lib/orpc-web-client";
@@ -15,19 +15,12 @@ import { getSocketClientORPC } from "../../../lib/orpc-ws-client";
 
 type Message = z.infer<typeof messageSchema>;
 
-export default function Messaging({ chatroomId }: { chatroomId: string }) {
+const FALLBACK_RECIPIENT_ID_PREVIEW_LENGTH = 6;
+
+export default function Messaging({ chatroomId, recipientId }: { chatroomId: string; recipientId?: string }) {
   const queryClient = useQueryClient();
   const { data: session } = authClientWeb.useSession();
   const userId = session?.user?.id;
-
-  const chatroomsQueryOptions = webClientORPC.chatroom.getChatrooms.queryOptions();
-  const { data: chatrooms } = useQuery({
-    ...chatroomsQueryOptions,
-    enabled: !!userId,
-    refetchOnMount: "always",
-  });
-  const chatroom = useMemo(() => chatrooms?.find((c) => c._id === chatroomId), [chatrooms, chatroomId]);
-  const recipientId = useMemo(() => chatroom?.activeParticipantsId.find((id) => id !== userId), [chatroom, userId]);
 
   const { data: recipientProfile } = useQuery({
     ...webClientORPC.profile.getProfileById.queryOptions({
@@ -92,6 +85,11 @@ export default function Messaging({ chatroomId }: { chatroomId: string }) {
     const trimmed = input.trim();
     if (!trimmed || !chatroomId) return;
 
+    if (!recipientId) {
+      setSendError("No active recipient for this chatroom.");
+      return;
+    }
+
     setInput("");
 
     try {
@@ -107,7 +105,8 @@ export default function Messaging({ chatroomId }: { chatroomId: string }) {
     }
   };
 
-  const name = recipientProfile?.username || "Loading...";
+  const fallbackName = recipientId ? `User ${recipientId.slice(0, FALLBACK_RECIPIENT_ID_PREVIEW_LENGTH)}` : "Loading...";
+  const name = recipientProfile?.username || fallbackName;
 
   return (
     <div className="flex h-full min-w-0 flex-1 flex-col">
