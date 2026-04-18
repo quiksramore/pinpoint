@@ -1,7 +1,22 @@
 import { profileSchema } from "@pinpoint/contracts";
 import type { z } from "zod";
+import { authServer } from "../../libs/auth-server";
 import { protectedProcedure, publicProcedure } from "../../libs/orpc-procedures";
 import { ProfileService } from "./profile-service";
+
+async function hydrateProfileImage<T extends { _id: string; image?: string | undefined }>(profile: T): Promise<T> {
+  if (profile.image) return profile;
+
+  const authContext = await authServer.$context;
+  const authUser = await authContext.internalAdapter.findUserById(profile._id);
+
+  if (!authUser?.image) return profile;
+
+  return {
+    ...profile,
+    image: authUser.image,
+  };
+}
 
 export const profileRouter = {
   createProfile: protectedProcedure.profile.createProfile.handler(
@@ -19,6 +34,7 @@ export const profileRouter = {
 
       const profilePayload: z.input<typeof profileSchema> = {
         _id: id,
+        image: context.user.image ?? undefined,
         username: input.username,
         bio: input.bio,
         location: input.location,
@@ -156,7 +172,7 @@ export const profileRouter = {
       });
     }
 
-    return profile;
+    return hydrateProfileImage(profile);
   }),
 
   getProfileByUsername: publicProcedure.profile.getProfileByUsername.handler(async ({ input, errors: { NOT_FOUND } }) => {
@@ -170,6 +186,6 @@ export const profileRouter = {
       });
     }
 
-    return profile;
+    return hydrateProfileImage(profile);
   }),
 };

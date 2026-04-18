@@ -287,7 +287,7 @@ function ChatroomItem({
     >
       <div className="relative shrink-0">
         <Avatar className="h-9 w-9">
-          <AvatarImage src="https://github.com/shadcn.png" alt={profile.username} />
+          <AvatarImage src={profile.image || undefined} alt={profile.username} />
           <AvatarFallback>{profile.username.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
       </div>

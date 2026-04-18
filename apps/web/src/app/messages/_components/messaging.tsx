@@ -174,13 +174,14 @@ export default function Messaging({ chatroomId, recipientId }: { chatroomId: str
 
   const fallbackName = activeRecipientId ? `User ${activeRecipientId.slice(0, FALLBACK_RECIPIENT_ID_PREVIEW_LENGTH)}` : "Loading...";
   const name = recipientProfile?.username || fallbackName;
+  const recipientImage = recipientProfile?.image || undefined;
 
   return (
     <div className="flex h-full min-w-0 flex-1 flex-col">
       {/* Header */}
       <header className="flex w-full gap-2 border-background-700 border-b bg-background-800 p-5">
         <Avatar>
-          <AvatarImage src="https://github.com/shadcn.png" />
+          <AvatarImage src={recipientImage} />
           <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
         <h1 className="font-bold text-lg">{name}</h1>
@@ -199,7 +200,7 @@ export default function Messaging({ chatroomId, recipientId }: { chatroomId: str
                 {/* Avatar (only when sender changes) */}
                 {!isMe && showAvatar && (
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="https://github.com/shadcn.png" />
+                    <AvatarImage src={recipientImage} />
                     <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                 )}

@@ -13,6 +13,7 @@ export const BIO_MAX_LENGTH = 200;
 export const profileSchema = z.object({
   _id: z.string(), // full type unknown, we're using better-auth user _id property.
   createdAt: z.coerce.date(),
+  image: z.string().url().optional(),
   username: z
     .string()
     .min(USERNAME_MIN_LENGTH, `Usernames must be at least ${USERNAME_MIN_LENGTH} characters long.`)
