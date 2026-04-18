@@ -6,6 +6,7 @@ export default function SendToMapButton({ postLocationData }: { postLocationData
 
   return (
     <Map
+      className="cursor-pointer"
       onClick={(e) => {
         e.stopPropagation();
         const [lng, lat] = postLocationData.coordinates;
