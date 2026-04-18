@@ -1,6 +1,4 @@
-import { messageSchema } from "@pinpoint/contracts";
 import { v7 as uuidv7 } from "uuid";
-import type { z } from "zod";
 import { chatRoomPublisher } from "../core/messaging/chat-subscription-manager";
 import { ChatRoomService } from "../core/messaging/chatroom-service";
 import { MessageService } from "../core/messaging/messages-service";
@@ -25,7 +23,7 @@ export const webSocketRouter = {
         });
       }
 
-      const outgoingMessage: z.infer<typeof messageSchema> = {
+      const outgoingMessage = {
         _id: uuidv7(),
         chatroomId: input.chatroomId,
         createdAt: new Date(),
@@ -33,17 +31,13 @@ export const webSocketRouter = {
         content: input.message,
       };
 
-      const tryParse = messageSchema.safeParse(outgoingMessage);
-
-      if (!tryParse.success) {
+      const result = await MessageService.insertOne(outgoingMessage).catch((error) => {
         throw INTERNAL_SERVER_ERROR({
           data: {
-            message: `Failed to conform: ${tryParse.error.issues.map((issue) => issue.message).join(", ")}`,
+            message: `Failed to persist message: ${error}`,
           },
         });
-      }
-
-      const result = await MessageService.insertOne(outgoingMessage);
+      });
 
       if (result) {
         await chatRoomPublisher.publish(input.chatroomId, { incomingMessage: outgoingMessage });

@@ -7,7 +7,7 @@ import { Input } from "@pinpoint/shad-ui/components/input";
 import { ScrollArea } from "@pinpoint/shad-ui/components/scroll-area";
 import { cn } from "@pinpoint/shad-ui/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { z } from "zod";
 import { authClientWeb } from "../../../lib/auth-client-web";
 import { webClientORPC } from "../../../lib/orpc-web-client";
@@ -15,18 +15,65 @@ import { getSocketClientORPC } from "../../../lib/orpc-ws-client";
 
 type Message = z.infer<typeof messageSchema>;
 
+type ErrorWithDataMessage = {
+  message?: string;
+  data?: {
+    message?: string;
+  };
+  cause?: unknown;
+};
+
 const FALLBACK_RECIPIENT_ID_PREVIEW_LENGTH = 6;
+const SUBSCRIPTION_RETRY_DELAY_MS = 1500;
+
+function formatErrorDetails(error: unknown, fallback: string) {
+  if (typeof error === "string" && error.length > 0) {
+    return error;
+  }
+
+  if (typeof error === "object" && error !== null) {
+    const maybeError = error as ErrorWithDataMessage;
+    const dataMessage = maybeError.data?.message;
+    if (typeof dataMessage === "string" && dataMessage.length > 0) {
+      return dataMessage;
+    }
+
+    if (typeof maybeError.message === "string" && maybeError.message.length > 0) {
+      return maybeError.message;
+    }
+
+    if (typeof maybeError.cause === "string" && maybeError.cause.length > 0) {
+      return maybeError.cause;
+    }
+  }
+
+  return fallback;
+}
 
 export default function Messaging({ chatroomId, recipientId }: { chatroomId: string; recipientId?: string }) {
   const queryClient = useQueryClient();
   const { data: session } = authClientWeb.useSession();
   const userId = session?.user?.id;
 
+  const chatroomsQueryOptions = webClientORPC.chatroom.getChatrooms.queryOptions();
+  const { data: chatrooms } = useQuery({
+    ...chatroomsQueryOptions,
+    enabled: !recipientId && !!userId,
+  });
+
+  const derivedRecipientId = useMemo(() => {
+    if (!chatrooms || !userId) return undefined;
+    const activeChatroom = chatrooms.find((chatroom) => chatroom._id === chatroomId);
+    return activeChatroom?.activeParticipantsId.find((id) => id !== userId);
+  }, [chatroomId, chatrooms, userId]);
+
+  const activeRecipientId = recipientId ?? derivedRecipientId;
+
   const { data: recipientProfile } = useQuery({
     ...webClientORPC.profile.getProfileById.queryOptions({
-      input: { id: recipientId ?? "" },
+      input: { id: activeRecipientId ?? "" },
     }),
-    enabled: !!recipientId,
+    enabled: !!activeRecipientId,
   });
 
   const historyQueryOptions = webClientORPC.chatroom.getMessageHistory.queryOptions({
@@ -56,6 +103,17 @@ export default function Messaging({ chatroomId, recipientId }: { chatroomId: str
     if (!chatroomId || !userId) return;
 
     let isCancelled = false;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const scheduleReconnect = () => {
+      if (isCancelled) return;
+      retryTimer = setTimeout(() => {
+        subscribe().catch(() => {
+          // Errors are handled inside subscribe.
+        });
+      }, SUBSCRIPTION_RETRY_DELAY_MS);
+    };
+
     const subscribe = async () => {
       try {
         setSubscriptionError(null);
@@ -69,23 +127,31 @@ export default function Messaging({ chatroomId, recipientId }: { chatroomId: str
             return [...prev, msg];
           });
         }
-      } catch {
-        setSubscriptionError("Live updates are temporarily unavailable.");
+
+        scheduleReconnect();
+      } catch (error) {
+        setSubscriptionError(`Live updates unavailable: ${formatErrorDetails(error, "unknown websocket error")}`);
+        scheduleReconnect();
       }
     };
 
-    subscribe();
+    subscribe().catch(() => {
+      // Errors are handled inside subscribe.
+    });
 
     return () => {
       isCancelled = true;
+      if (retryTimer) {
+        clearTimeout(retryTimer);
+      }
     };
   }, [chatroomId, userId]);
 
   const sendMessage = async () => {
     const trimmed = input.trim();
-    if (!trimmed || !chatroomId) return;
+    if (!trimmed || !chatroomId || !userId) return;
 
-    if (!recipientId) {
+    if (!activeRecipientId) {
       setSendError("No active recipient for this chatroom.");
       return;
     }
@@ -100,12 +166,13 @@ export default function Messaging({ chatroomId, recipientId }: { chatroomId: str
         message: trimmed,
       });
       await queryClient.invalidateQueries({ queryKey: historyQueryOptions.queryKey });
-    } catch {
-      setSendError("Failed to send message.");
+    } catch (error) {
+      setInput(trimmed);
+      setSendError(`Failed to send message: ${formatErrorDetails(error, "unknown websocket error")}`);
     }
   };
 
-  const fallbackName = recipientId ? `User ${recipientId.slice(0, FALLBACK_RECIPIENT_ID_PREVIEW_LENGTH)}` : "Loading...";
+  const fallbackName = activeRecipientId ? `User ${activeRecipientId.slice(0, FALLBACK_RECIPIENT_ID_PREVIEW_LENGTH)}` : "Loading...";
   const name = recipientProfile?.username || fallbackName;
 
   return (
