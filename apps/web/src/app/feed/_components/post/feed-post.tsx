@@ -32,6 +32,7 @@ export default function FeedPost({ postData, className }: { postData: z.infer<ty
           src={`${env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_DEVELOPMENT_URL}/${postData.images[0]!.suburl}`}
           alt={postData.title}
           fill
+          sizes="40"
           className="object-cover"
         />
       </div>

@@ -144,77 +144,77 @@ export default function MessagesSidebar({
   }, [chatrooms, userId]);
 
   return (
-    <ScrollArea className="h-full w-72 border-background border-r bg-background-800/50 font-sans">
-      <aside className="flex h-full w-72 flex-col border-background border-r bg-background-800/50 font-sans">
-        {/* Header */}
-        <div className="px-4 pt-5 pb-3">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold text-foreground text-sm uppercase tracking-widest">Messages</h2>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                  <SquarePen size={18} />
+    <ScrollArea className="h-full w-72 bg-background-800/50 font-sans">
+      {/* <aside className="flex h-full w-72 flex-col border border-red-500 bg-background-800/50 font-sans"> */}
+      {/* Header */}
+      <div className="px-4 pt-5 pb-3">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-semibold text-foreground text-sm uppercase tracking-widest">Messages</h2>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                <SquarePen size={18} />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>New Message</DialogTitle>
+                <DialogDescription>Enter the username of the person you want to message.</DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <Input
+                  placeholder="Username"
+                  value={newChatUsername}
+                  onChange={(e) => {
+                    setNewChatUsername(e.target.value);
+                    setError(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleStartChat();
+                  }}
+                />
+                {error && <p className="mt-2 text-destructive text-xs">{error}</p>}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  Cancel
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>New Message</DialogTitle>
-                  <DialogDescription>Enter the username of the person you want to message.</DialogDescription>
-                </DialogHeader>
-                <div className="py-4">
-                  <Input
-                    placeholder="Username"
-                    value={newChatUsername}
-                    onChange={(e) => {
-                      setNewChatUsername(e.target.value);
-                      setError(null);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleStartChat();
-                    }}
-                  />
-                  {error && <p className="mt-2 text-destructive text-xs">{error}</p>}
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleStartChat} disabled={startChatMutation.isPending || !newChatUsername.trim()}>
-                    {startChatMutation.isPending ? "Starting..." : "Start Chat"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute top-1/2 left-2.5 -translate-y-1/2 text-muted-foreground" size="15" />
-            <Input
-              type="text"
-              placeholder="Search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-input bg-background py-2 pr-3 pl-8 text-foreground text-sm transition-colors placeholder:text-muted-foreground focus:border-ring focus:outline-none"
-            />
-          </div>
+                <Button onClick={handleStartChat} disabled={startChatMutation.isPending || !newChatUsername.trim()}>
+                  {startChatMutation.isPending ? "Starting..." : "Start Chat"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
-        {/* Conversation list */}
-        <nav className="scrollbar-thin flex flex-1 flex-col gap-5 space-y-0.5 overflow-y-auto px-2 pb-4">
-          {chatroomList.length === 0 && <p className="mt-8 text-center text-muted-foreground text-sm">No results</p>}
-          {chatroomList.map((item) => (
-            <ChatroomItem
-              key={item.chatroomId}
-              chatroomId={item.chatroomId}
-              recipientId={item.recipientId}
-              isActive={activeId === item.chatroomId}
-              onClick={() => setActiveChat({ id: item.chatroomId, recipientId: item.recipientId })}
-              search={search}
-            />
-          ))}
-        </nav>
-      </aside>
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute top-1/2 left-2.5 -translate-y-1/2 text-muted-foreground" size="15" />
+          <Input
+            type="text"
+            placeholder="Search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-lg border border-input bg-background py-2 pr-3 pl-8 text-foreground text-sm transition-colors placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Conversation list */}
+      <nav className="scrollbar-thin flex flex-1 flex-col gap-5 space-y-0.5 overflow-y-auto px-2 pb-4">
+        {chatroomList.length === 0 && <p className="mt-8 text-center text-muted-foreground text-sm">No results</p>}
+        {chatroomList.map((item) => (
+          <ChatroomItem
+            key={item.chatroomId}
+            chatroomId={item.chatroomId}
+            recipientId={item.recipientId}
+            isActive={activeId === item.chatroomId}
+            onClick={() => setActiveChat({ id: item.chatroomId, recipientId: item.recipientId })}
+            search={search}
+          />
+        ))}
+      </nav>
+      {/* </aside> */}
     </ScrollArea>
   );
 }
