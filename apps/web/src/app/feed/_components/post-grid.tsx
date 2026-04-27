@@ -38,7 +38,7 @@ export default function PostGrid() {
       {isLoading && <p>Loading...</p>}
       {error && <p>Error loading posts: {error.message}</p>}
       {data?.map((post) => (
-        <PostDialog key={post._id} data={post} />
+        <PostDialog key={post._id} postData={post} />
       ))}
     </div>
   );
