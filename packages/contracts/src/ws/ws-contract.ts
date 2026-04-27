@@ -17,6 +17,11 @@ export const webSocketContract = {
           message: z.string(),
         }),
       },
+      FORBIDDEN: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
       NOT_FOUND: {
         data: z.object({
           message: z.string(),
@@ -39,6 +44,11 @@ export const webSocketContract = {
     )
     .errors({
       INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+      FORBIDDEN: {
         data: z.object({
           message: z.string(),
         }),

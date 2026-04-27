@@ -58,7 +58,24 @@ export const protectedProcedure = publicProcedure.use(({ context, next }) => {
   });
 });
 
-export const webSocketProcedure = implement(webSocketContract).$context<AuthContext>();
+export const webSocketProcedure = implement(webSocketContract)
+  .$context<AuthContext>()
+  .use(
+    onError((error) => {
+      logger.error(
+        {
+          code: error && typeof error === "object" && "code" in error ? (error as ORPCError<string, unknown>).code : undefined,
+          message: error instanceof Error ? error.message : String(error),
+          status: error && typeof error === "object" && "status" in error ? (error as ORPCError<string, unknown>).status : undefined,
+          cause: error instanceof Error ? error.cause : undefined,
+          stack: error instanceof Error ? error.stack : undefined,
+        },
+        "WebSocket Error occurred"
+      );
+
+      throw error;
+    })
+  );
 
 export const protectedWebSocketProcedure = webSocketProcedure.use(({ context, next }) => {
   if (!context.session) {
