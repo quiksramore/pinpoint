@@ -1,6 +1,5 @@
 import { postSchema } from "@pinpoint/contracts";
 import { toMongooseSchema } from "mongoose-zod";
-import type { z } from "zod";
 import { databaseConnection } from "../../database/database";
 
 // Mongoose Schema Definitions for MongoDB
@@ -15,6 +14,9 @@ const PostSchemaMongoose = toMongooseSchema(
     },
   })
 );
+
+PostSchemaMongoose.index({ location: "2dsphere", createdAt: -1 });
+PostSchemaMongoose.index({ createdAt: -1 });
 
 // Infer the bland TypeScript type from Zod
 export interface IPostSchemaMongoose extends z.infer<typeof PostSchema> {}

@@ -1,6 +1,15 @@
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { pointSchema, postSchema } from "@pinpoint/contracts";
+import {
+  LATITUDE_MAX,
+  LATITUDE_MIN,
+  LONGITUDE_MAX,
+  LONGITUDE_MIN,
+  LONGITUDE_RANGE,
+  type getMapMarkersInputSchema,
+  pointSchema,
+  postSchema,
+} from "@pinpoint/contracts";
 import { S3Client, write } from "bun";
 import { exiftool } from "exiftool-vendored";
 import { fileTypeFromBuffer } from "file-type";
@@ -12,6 +21,77 @@ import { ProfileService } from "../profile/profile-service";
 import { VoteService } from "../vote/vote-service";
 import { getStrongestCluster } from "./location-util";
 import { PostService } from "./post-service";
+
+type MapBounds = z.infer<typeof getMapMarkersInputSchema>["bounds"];
+
+const createBoundsPolygon = (west: number, south: number, east: number, north: number) => ({
+  type: "Polygon",
+  coordinates: [
+    [
+      [west, south],
+      [east, south],
+      [east, north],
+      [west, north],
+      [west, south],
+    ],
+  ],
+});
+
+const createViewportMatch = (bounds: MapBounds) => {
+  if (bounds.west === LONGITUDE_MIN && bounds.east === LONGITUDE_MAX && bounds.south === LATITUDE_MIN && bounds.north === LATITUDE_MAX) {
+    return {};
+  }
+
+  if (bounds.west <= bounds.east) {
+    if (bounds.east - bounds.west > LONGITUDE_RANGE / 2) {
+      return {
+        $or: [
+          {
+            location: {
+              $geoWithin: {
+                $geometry: createBoundsPolygon(bounds.west, bounds.south, 0, bounds.north),
+              },
+            },
+          },
+          {
+            location: {
+              $geoWithin: {
+                $geometry: createBoundsPolygon(0, bounds.south, bounds.east, bounds.north),
+              },
+            },
+          },
+        ],
+      };
+    }
+
+    return {
+      location: {
+        $geoWithin: {
+          $geometry: createBoundsPolygon(bounds.west, bounds.south, bounds.east, bounds.north),
+        },
+      },
+    };
+  }
+
+  return {
+    $or: [
+      {
+        location: {
+          $geoWithin: {
+            $geometry: createBoundsPolygon(bounds.west, bounds.south, LONGITUDE_MAX, bounds.north),
+          },
+        },
+      },
+      {
+        location: {
+          $geoWithin: {
+            $geometry: createBoundsPolygon(LONGITUDE_MIN, bounds.south, bounds.east, bounds.north),
+          },
+        },
+      },
+    ],
+  };
+};
 
 export const uploadToR2 = async (postId: string, file: File, index: number) => {
   const fileBuffer = await file.arrayBuffer();
@@ -265,11 +345,47 @@ export const postRouter = {
     return post;
   }),
 
+  getMapMarkers: publicProcedure.posts.getMapMarkers.handler(async ({ input }) => {
+    const documents = await PostService.aggregate<{
+      _id: string;
+      location: z.infer<typeof pointSchema>;
+      thumbnailSuburl: string;
+      title: string;
+    }>([
+      {
+        $match: {
+          ...createViewportMatch(input.bounds),
+          "images.0.suburl": { $type: "string" },
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      { $limit: input.limit + 1 },
+      {
+        $project: {
+          _id: 1,
+          location: 1,
+          title: 1,
+          thumbnailSuburl: { $arrayElemAt: ["$images.suburl", 0] },
+        },
+      },
+    ]);
+
+    return {
+      markers: documents.slice(0, input.limit).map((doc) => ({
+        postId: doc._id,
+        location: doc.location,
+        thumbnailSuburl: doc.thumbnailSuburl,
+        title: doc.title,
+      })),
+      hasMore: documents.length > input.limit,
+    };
+  }),
+
   // TODO: DELETE IN PRODUCTION, ENDPOINT JUST FOR MVP
   getAllPosts: publicProcedure.posts.getAllPosts.handler(async ({ context }) => {
     const documents = await PostService.find({}).sort({ createdAt: -1 }).lean();
 
-    if (!context || !context.user) return documents;
+    if (!context?.user) return documents;
 
     const postIds = documents.map((doc) => doc._id);
 

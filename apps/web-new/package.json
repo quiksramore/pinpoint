@@ -1,0 +1,56 @@
+{
+  "name": "@pinpoint/web-new",
+  "private": true,
+  "type": "module",
+  "imports": {
+    "#/*": "./src/*"
+  },
+  "scripts": {
+    "build": "vite build",
+    "check": "biome check",
+    "dev": "vite dev --port 3000",
+    "format": "biome format",
+    "generate-routes": "tsr generate",
+    "lint": "biome lint",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@convex-dev/better-auth": "^0.12.5",
+    "@convex-dev/react-query": "0.1.0",
+    "@dayflow/core": "^3.6.5",
+    "@dayflow/react": "^3.6.5",
+    "@pinpoint/shad-ui": "workspace:*",
+    "@t3-oss/env-core": "^0.13.11",
+    "@tailwindcss/vite": "^4.3.2",
+    "@tanstack/react-devtools": "^0.10.8",
+    "@tanstack/react-query": "^5.101.2",
+    "@tanstack/react-query-devtools": "^5.101.2",
+    "@tanstack/react-router": "^1.170.17",
+    "@tanstack/react-router-devtools": "^1.167.0",
+    "@tanstack/react-router-ssr-query": "^1.167.1",
+    "@tanstack/react-start": "^1.168.27",
+    "@tanstack/router-plugin": "^1.168.19",
+    "better-auth": "^1.6.23",
+    "convex": "^1.42.1",
+    "lucide-react": "^1.24.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "tailwindcss": "^4.3.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.20",
+    "@tanstack/devtools-vite": "^0.8.1",
+    "@tanstack/router-cli": "^1.167.18",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "jsdom": "^29.1.1",
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10"
+  }
+}

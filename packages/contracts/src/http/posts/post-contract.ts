@@ -1,7 +1,7 @@
 import { oc } from "@orpc/contract";
 import { z } from "zod";
 import { profileSchema } from "../profile/profile-schema";
-import { contextfulPostSchema, postSchema, uiCreatePostFormSchema } from "./post-schema";
+import { contextfulPostSchema, getMapMarkersInputSchema, getMapMarkersOutputSchema, postSchema, uiCreatePostFormSchema } from "./post-schema";
 
 export const postContract = {
   createPost: oc
@@ -127,6 +127,21 @@ export const postContract = {
           message: z.string(),
         }),
       },
+      INTERNAL_SERVER_ERROR: {
+        data: z.object({
+          message: z.string(),
+        }),
+      },
+    }),
+
+  getMapMarkers: oc
+    .route({
+      method: "GET",
+      description: "Get lightweight map marker previews inside a viewport",
+    })
+    .input(getMapMarkersInputSchema)
+    .output(getMapMarkersOutputSchema)
+    .errors({
       INTERNAL_SERVER_ERROR: {
         data: z.object({
           message: z.string(),
