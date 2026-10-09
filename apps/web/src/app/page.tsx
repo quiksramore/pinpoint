@@ -1,9 +1,16 @@
 "use client";
+import { USERNAME_MAX_LENGTH } from "@pinpoint/contracts";
 import { Button } from "@pinpoint/shad-ui/components/button";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { authClientWeb } from "../lib/auth-client-web";
 import { webClientORPC } from "../lib/orpc-web-client";
+
+const toUsername = (name: string) =>
+  name
+    .trim()
+    .replace(/[^a-zA-Z0-9_]+/g, "_")
+    .slice(0, USERNAME_MAX_LENGTH);
 
 // TODO remove button to create profiles
 export default function Home() {
@@ -16,7 +23,7 @@ export default function Home() {
       <Button onClick={() => router.push("/feed")}>Go to Feed</Button>
 
       {/** biome-ignore lint/style/noNonNullAssertion: don't give a fuck */}
-      <Button onClick={() => createProfileMutation.mutate({ username: authData!.user.name })}>Create Profile</Button>
+      <Button onClick={() => createProfileMutation.mutate({ username: toUsername(authData!.user.name) })}>Create Profile</Button>
     </div>
   );
 }
