@@ -20,6 +20,9 @@ export const env = createEnv({
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),
 
+    // Comma-separated emails allowed to sign in
+    ALLOWED_EMAILS: z.string(),
+
     // Cloudflare R2 credentials
     CLOUDFLARE_R2_ACCOUNT_ID: z.string(),
     CLOUDFLARE_R2_BUCKET_NAME: z.string(),
